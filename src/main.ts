@@ -1,7 +1,7 @@
 // Bootstrap: build the parts that live for the whole page (graphics, sound, input, the start panel and country
 // picker), then create and swap sessions as the player chooses arenas.
 import { createSound } from './audio/index.ts';
-import { AFTER_DEATH_MS, AFTER_WIN_MS, TICK_MS } from './config.ts';
+import { AFTER_DEATH_MS, AFTER_WIN_MS } from './config.ts';
 import { characterBoost, isTouchScreen, layoutChain } from './render3d/tuning.ts';
 import { WORLD_SHAPE } from './data/worldMask.ts';
 import type { ArenaShape } from './data/shape.ts';
@@ -12,7 +12,7 @@ import { enterFullscreen, fullscreenOnFirstGesture } from './platform/fullscreen
 import { FLIP, FLIP_KINDS, pickFlipKind, type FlipKind } from './render3d/pose.ts';
 import { initStorage } from './platform/storage.ts';
 import { bindAudio, bindPause, sendScore } from './platform/youtube.ts';
-import { COLORS, cssColorOf, setPlayerColor } from './render/palette.ts';
+import { COLORS, setPlayerColor } from './render/palette.ts';
 import { pickResolution } from './render/quality.ts';
 import { createShell, type Shell } from './scene/shell.ts';
 import { createCharacters3D } from './render3d/index.ts';
@@ -23,7 +23,6 @@ import { SPECIES } from './render3d/index.ts';
 import { profile } from './progress/profile.ts';
 import { CONQUER_POINTS } from './progress/unlocks.ts';
 import { createProgression } from './ui/progression.ts';
-import { createJumpScare } from './ui/jumpScare.ts';
 import { createOverlay } from './ui/overlay.ts';
 import { createPicker } from './ui/picker/index.ts';
 import { bindPullRefresh } from './ui/pullRefresh.ts';
@@ -31,7 +30,6 @@ import { bindPauseButton } from './ui/pauseButton.ts';
 import { showFirstRoundHint } from './ui/hint.ts';
 import { bindTiltButton } from './ui/tiltButton.ts';
 
-const HUD_CHECK_MS = 5 * TICK_MS;                          // the loop calls everyFewTicks every 5 ticks
 const INTRO = "leave your color, loop back home to claim land. don't let anyone touch your line. your own land keeps you safe.";
 
 async function main() {
@@ -51,7 +49,6 @@ async function main() {
 
   const sound = createSound();
   bindAudio(on => sound.setYouTubeEnabled(on));
-  const scare = createJumpScare($('stage'), () => sound.scare());
   const characters = createCharacters3D(() => { try { shell.renderer.compile(shell.scene, shell.camera); } catch { /* compiling early is only an optimisation */ } });
 
   let session: Session | null = null;
@@ -85,7 +82,6 @@ async function main() {
     if (tilt.supported) { if (tilt.enabled()) tilt.recentre(); else if (tilt.wantedByDefault()) void tilt.enable(); }     // asked from the play tap, which iOS requires
     const s = ensureSession(shape);
     s.game.startGame();
-    scare.reset();
     overlay.hide();
     showFirstRoundHint(matchMedia('(pointer: coarse)').matches);       // new players get one line about what to do, once
     setTimeout(() => { if (!overlay.visible()) { picker.suspend(); characterPicker?.suspend(); } }, 800);   // the start panel's 3D previews give their GPU memory back while you play: a moment AFTER the round begins, so tearing them down never hitches the first frames
@@ -152,14 +148,7 @@ async function main() {
     game: () => session!.game,
     renderer: () => session!.renderer,
     isPaused: () => userPaused || ytPaused || hidden,
-    everyFewTicks: () => {
-      session?.refreshUi();
-      const g = session?.game, me = g?.players[0];
-      if (!g || !me) return;
-      let near: (typeof g.players)[number] | null = null, best = Infinity;                // the face wears the colour of the rival closest to you
-      for (const p of g.players) if (p.isBot && p.alive) { const d = (p.x - me.x) ** 2 + (p.y - me.y) ** 2; if (d < best) { best = d; near = p; } }
-      scare.check(HUD_CHECK_MS, { playing: g.running && me.alive && !overlay.visible() && !userPaused, trail: me.inOwner === 1 ? 0 : me.trail.length, color: cssColorOf(near?.id ?? 2) });
-    },
+    everyFewTicks: () => { session?.refreshUi(); },
     applyResolution: (r) => { shell.resize(window.innerWidth, window.innerHeight); shell.setPixelRatio(r); },
   });
 }

@@ -15,7 +15,6 @@ export interface Sound {
   cut(): void;
   death(): void;
   win(): void;
-  scare(): void;
   clash(pan?: number, vol?: number): void;
   flip(variant?: number): void;
   leaveHome(): void;
@@ -65,7 +64,7 @@ export function createSound(): Sound {
     audible,
     setPaused(p) { paused = p; apply(); synth.setPaused(p); },
     onAudibleChange(cb) { listeners.push(cb); },
-    start: sfx.start, flip: sfx.flip, capture: sfx.capture, cut: sfx.cut, death: sfx.death, win: sfx.win, scare: sfx.scare, clash: sfx.clash,
+    start: sfx.start, flip: sfx.flip, capture: sfx.capture, cut: sfx.cut, death: sfx.death, win: sfx.win, clash: sfx.clash,
     leaveHome: throttled('leaveHome', sfx.leaveHome), enemyLand: throttled('enemyLand', sfx.enemyLand),
     intruder: throttled('intruder', sfx.intruder), landLost: throttled('landLost', sfx.landLost),
     crown: throttled('crown', sfx.crown), milestone: sfx.milestone,

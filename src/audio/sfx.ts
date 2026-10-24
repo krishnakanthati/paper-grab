@@ -2,7 +2,6 @@
 import { PENTA, midiToHz } from './notes.ts';
 import { AUDIO } from './tuning.ts';
 import type { Synth } from './synth.ts';
-import { playScare } from './scare.ts';
 
 /** Every musical cue is written for a brighter register and played this far down (see audio/tuning.ts). */
 const pitch = (m: number) => midiToHz(m + AUDIO.transposeSemitones);
@@ -154,7 +153,6 @@ export function createSfx(synth: Synth) {
       synth.note(synth.sfx(), 110, t, 0.5, 'sine', 0.22, 40);                         // low thump
       synth.note(synth.sfx(), pitch(67), t + 0.05, 0.5, 'triangle', 0.08, pitch(55));
     },
-    scare: () => playScare(synth),
     win() {
       if (!ready()) return;
       const t = now();
