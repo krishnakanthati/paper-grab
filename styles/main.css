@@ -654,4 +654,8 @@ kbd[aria-label] { display: inline-flex; align-items: center; justify-content: ce
 }
 #rules b { margin-right: .45em; font-weight: 900; color: #7ee8fa; }
 @media (max-height: 470px) { #rules { display: none; } }
-@media (max-width: 1000px) { #rules { margin-top: 46px; } }          /* below this the rules would run into the title and logo on the left */
+@media (max-width: 700px) { #rules { margin-top: 46px; } }           /* on a phone the rules sit under the title */
+@media (min-width: 701px) {                                          /* elsewhere they take the empty top-right corner, opposite the logo, clear of the globe */
+  #ov > #rules { position: absolute; top: calc(var(--safe-t) + var(--pad) + 4px); right: calc(var(--safe-r) + var(--pad)); margin: 0; align-items: flex-end; text-align: right; z-index: 2; }
+  #mid #picker { padding-top: 40px; box-sizing: border-box; }                                  /* the rules no longer sit above it, so keep it clear of the title instead */
+}
