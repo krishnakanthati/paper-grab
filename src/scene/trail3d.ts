@@ -29,6 +29,13 @@ export function createTrail3D(game: Game, capacityPoints = 6000) {
   group.add(caps.mesh);
   const cap = capacityPoints, idx = ribbonIndices(cap);
   const tmp = new Color();
+  let dimmed = false;                       // replay: every line is faint except the highlighted stretch
+  let highlight: number[] | null = null;   // that stretch, flat [x0,y0,x1,y1,...]: the part of the victim's line between the thrower's touch and the victim
+  const DIM_OPACITY = 0.22;
+  const applyDim = (s: Strand) => {
+    if (s.mat.transparent === dimmed && (!dimmed || s.mat.opacity === DIM_OPACITY)) return;
+    s.mat.transparent = dimmed; s.mat.depthWrite = !dimmed; s.mat.opacity = dimmed ? DIM_OPACITY : 1; s.mat.needsUpdate = true;
+  };
 
   const makeStrand = (order: number): Strand => {
     const geo = new BufferGeometry(), pos = new Float32Array(cap * 2 * 3), col = new Float32Array(cap * 2 * 3);
@@ -73,10 +80,13 @@ export function createTrail3D(game: Game, capacityPoints = 6000) {
       }
     },
     fadingCount: () => fades.length,
+    /** During a replay: fade every line right back and draw just `route` (the stretch between attacker and victim) at full strength; null puts everything back. */
+    setReplay(route: number[] | null, on: boolean) { dimmed = on; highlight = on ? route : null; },
     /** How many colour chunks a player's committed line has finished (a chunk is CHUNK_POINTS path points). */
     chunkCount: (id: number) => Math.floor(Math.max(0, lines[id].seenLen / 2 - 2) / CHUNK_POINTS),
     update(f: number) {
       caps.begin();
+      for (const ln of lines) for (const s of ln.strands) applyDim(s);
       for (const p of game.players) {
         let ln = lines[p.id];
         const len = p.alive ? p.path.length : 0;
@@ -125,6 +135,10 @@ export function createTrail3D(game: Game, capacityPoints = 6000) {
             caps.circle(pts[0], pts[1], w / 2, defs[si][1], 1, 12);
           }
         } else if (len < 4) for (const s of ln.strands) s.geo.setDrawRange(0, 0);
+      }
+      if (highlight && highlight.length >= 4) {
+        const defs = strokes(1, colorOf(1), 0);
+        for (let si = 0; si < defs.length; si++) caps.polyline(highlight, defs[si][0], defs[si][1], 1);
       }
       caps.end();
     },

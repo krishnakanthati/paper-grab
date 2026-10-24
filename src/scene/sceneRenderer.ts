@@ -212,6 +212,7 @@ export function createSceneRenderer(shell: Shell, overlayHost: HTMLElement, game
       shell.applyPose(camera.pose(), camera.shakeOffset(), camera.scale);
       particles.setView(shell.renderer.domElement.height, shell.fovDeg);
       territory.sync(); territory.update(dtMs);
+      trails.setReplay(replay?.route?.pts ?? null, !!replay);
       trails.update(rf); if (!replay) trails.fade(dtMs);      // the cut line stays on the floor for the whole replay, then fades
       characters.frame({ f: rf, dtMs: sdt, nowMs: snow, scale: camera.scale, baseScale: pxPerCell(W, H, CAMERA.baseView) });
       effects.dust(sdt);
