@@ -639,3 +639,24 @@ kbd[aria-label] { display: inline-flex; align-items: center; justify-content: ce
   #charCol     { gap: 4px; }
   #charCol #actions { margin-top: 4px; }
 }
+
+/* ---------- start panel: logo + title on the left, three catchy rules ---------- */
+#ov > #brand { position: absolute; top: calc(var(--safe-t) + var(--pad)); left: calc(var(--safe-l) + var(--pad)); z-index: 2; display: flex; align-items: center; gap: 10px; margin: 0; }
+#logo { position: static; }
+#brand h1 { flex: none; margin: 0; text-align: left; font-size: clamp(20px, 4.2dvh, 30px); }
+#sub:empty { display: none; }
+#rules { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px clamp(8px, 1.6vw, 14px); }
+#rules[hidden] { display: none; }
+#rules li {
+  display: flex; align-items: center; gap: 8px; padding: 6px 14px 6px 6px; border-radius: 999px; white-space: nowrap;
+  font: 800 clamp(14px, 2.5dvh, 19px)/1.1 ui-rounded, 'SF Pro Rounded', 'Nunito', 'Trebuchet MS', 'Segoe UI', system-ui, sans-serif; letter-spacing: .02em;
+  color: #fff; text-shadow: 0 2px 6px rgba(5, 20, 80, .55);
+  background: rgba(255, 255, 255, .14); box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .28), 0 6px 16px -8px rgba(0, 10, 60, .6); backdrop-filter: blur(6px);
+}
+#rules b { display: grid; place-items: center; width: 1.7em; height: 1.7em; border-radius: 50%; color: #0e2a7a; font-weight: 900; background: linear-gradient(180deg, #fff, #9be7ff); text-shadow: none; }
+@media (max-height: 470px) { #rules { display: none; } }
+@media (max-width: 1000px) { #rules { margin-top: 46px; } }          /* below this the rules would run into the title and logo on the left */
+@media (max-width: 560px) {
+  #rules { flex-wrap: nowrap; gap: 4px; }
+  #rules li { gap: 4px; padding: 3px 8px 3px 3px; font-size: clamp(9.5px, 2.5vw, 13px); letter-spacing: 0; }
+}

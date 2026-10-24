@@ -30,7 +30,6 @@ import { bindPauseButton } from './ui/pauseButton.ts';
 import { showFirstRoundHint } from './ui/hint.ts';
 import { bindTiltButton } from './ui/tiltButton.ts';
 
-const INTRO = "leave your color, loop back home to claim land. don't let anyone touch your line. your own land keeps you safe.";
 
 async function main() {
   layoutChain(isTouchScreen(), characterBoost());      // bigger characters (phones) get a proportionally longer chain spacing, so captives are the same share of the leader's size everywhere
@@ -90,7 +89,7 @@ async function main() {
   function showStart() {
     progression.render(); characterPicker?.refresh();
     picker.resume(); characterPicker?.resume();
-    overlay.show({ title: 'loopy land', text: INTRO, button: 'play', picker: true, onClick: startRound });
+    overlay.show({ title: 'loopy land', text: '', button: 'play', picker: true, onClick: startRound });
     overlay.setButton('play', true);
   }
 

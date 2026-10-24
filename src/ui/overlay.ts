@@ -10,7 +10,7 @@ export interface OverlayOptions {
 }
 
 export function createOverlay() {
-  const root = $('ov'), title = $('title'), sub = $('sub'), btn = $<HTMLButtonElement>('btn'), btnLabel = $('btnLabel'), btn2 = $<HTMLButtonElement>('btn2'), keys = $('keys'), picker = $('picker');
+  const root = $('ov'), title = $('title'), sub = $('sub'), btn = $<HTMLButtonElement>('btn'), btnLabel = $('btnLabel'), btn2 = $<HTMLButtonElement>('btn2'), keys = $('keys'), picker = $('picker'), rules = $('rules');
   let action: (() => void) | null = null, second: (() => void) | null = null;
   let visible = true;
 
@@ -24,7 +24,7 @@ export function createOverlay() {
     show(o: OverlayOptions) {
       title.textContent = o.title; sub.textContent = o.text; btnLabel.textContent = o.button; btn.setAttribute('aria-label', o.button);
       keys.hidden = o.showKeys === false;                 // the stylesheet decides how it shows (and hides it on touch screens)
-      picker.hidden = !o.picker;
+      picker.hidden = !o.picker; rules.hidden = !o.picker;      // the three rules belong to the start panel; the pause panel has its own line
       $('logo').style.display = o.picker ? '' : 'none';           // the logo belongs to the start panel, not the pause panel
       $('charPick').hidden = !o.picker;                    // characters are chosen on the start panel, not the pause panel
       btn2.hidden = !o.secondary; btn2.textContent = o.secondary?.label ?? ''; second = o.secondary?.onClick ?? null;

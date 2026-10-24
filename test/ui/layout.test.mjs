@@ -146,8 +146,10 @@ test('branding: a title, description, icons, manifest and social tags in the pag
   assert.match(head, /<title>Loopy Land: [^<]+<\/title>/);
   for (const tag of ['name="description"', 'rel="icon" type="image/svg+xml"', 'rel="apple-touch-icon"', 'rel="manifest"', 'property="og:title"', 'property="og:image"', 'name="twitter:card"', 'rel="canonical"', 'name="theme-color"']) assert.ok(head.includes(tag), `missing ${tag}`);
   assert.match(html, /<svg id="logo" width="44" height="44"/, 'the logo has its own size, so it is small even if the stylesheet has not loaded');
-  assert.match(rule('#logo'), /position:\s*absolute/); assert.match(rule('#logo'), /top:[^;]*safe-t/); assert.match(rule('#logo'), /left:[^;]*safe-l/);
-  assert.match(rule('#logo'), /width:\s*44px/, 'small, in the top-left corner');
+  assert.match(rule('#ov > #brand'), /position:\s*absolute/); assert.match(rule('#ov > #brand'), /top:[^;]*safe-t/); assert.match(rule('#ov > #brand'), /left:[^;]*safe-l/);
+  assert.match(rule('#logo'), /width:\s*44px/, 'small, in the top-left corner beside the title');
+  assert.match(html, /<ol id="rules"/); assert.equal((html.match(/<ol id="rules"[\s\S]*?<\/ol>/)[0].match(/<li>/g) ?? []).length, 3, 'three rules');
+  for (const li of html.match(/<ol id="rules"[\s\S]*?<\/ol>/)[0].match(/<li><b>\d<\/b>([^<]+)<\/li>/g)) assert.ok(li.replace(/<[^>]+>/g, '').replace(/^\d/, '').trim().split(/\s+/).length <= 3, 'each rule is three words at most: ' + li);
   for (const f of ['logo.svg', 'favicon.svg', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png', 'og-image.png', 'manifest.webmanifest']) assert.ok(fs.existsSync(root + 'public/' + f), `public/${f} is missing`);
   const manifest = JSON.parse(fs.readFileSync(root + 'public/manifest.webmanifest', 'utf8'));
   assert.equal(manifest.name, 'Loopy Land'); assert.ok(manifest.icons.some(i => i.sizes === '512x512'));
