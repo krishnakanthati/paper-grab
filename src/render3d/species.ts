@@ -141,7 +141,7 @@ const CAST: Species[] = [
     id: 'ducky', name: 'ducky', body: 0xfff06b, cheek: 0xff9f7a, beak: 0xff9e1f,
     ears: { kind: 'none', color: 0xfff06b }, wings: 0xffe14a,
     tail: { kind: 'puff', color: 0xffe14a },
-    details: [{ kind: 'bowtie', color: 0xe5484d }],
+    details: [],
   },
   {
     id: 'tiger', mouth: 'flat', name: 'tiger', body: 0xff9a2e, cheek: 0xffb0a0, nose: 0xff7d8d,

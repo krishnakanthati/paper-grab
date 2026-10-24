@@ -128,7 +128,7 @@ test('every character has its own details beyond the shared face, and they all b
   for (const sp of SPECIES) {
     if (sp.plain) continue;
     const feature = (sp.details?.length ?? 0) + (sp.patches?.length ?? 0) + (sp.snout || sp.nose || sp.beak || sp.trunk || sp.noseHorn || sp.claws ? 1 : 0) + (sp.tail ? 1 : 0) + (sp.wings ? 1 : 0) + (sp.horns ? 1 : 0) + (sp.eyePatch ? 1 : 0);
-    assert.ok((sp.details?.length ?? 0) >= 1, `${sp.id} needs at least one signature detail`);
+    assert.ok((sp.details?.length ?? 0) >= 1 || sp.id === 'ducky', `${sp.id} needs at least one signature detail`);      // the duck's look is its beak, wings and tail: no extra accessory
     assert.ok(feature >= 3, `${sp.id} is too plain: only ${feature} features`);
     const c = createCharacter(0xef4b4b, sp);
     assert.ok(c.facing.children.length > 14, `${sp.id}: only ${c.facing.children.length} parts in the character`);
