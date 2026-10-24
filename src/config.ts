@@ -130,7 +130,7 @@ export const MIN_LAND_PER_BOT = 300;         // small arenas get fewer bots so t
 export const RESPAWN_TICKS = 60;
 export const REPLAY = {
   startDelayMs: 1500,          // after the hit plays at normal speed, before the replay starts
-  ms: 4600,                    // the replay of the fatal hit (slow through the throw, then the angel finish at normal speed) lasts this long (real time)
+  ms: 6200,                    // the replay of the fatal hit (slow through the throw, then the angel finish at normal speed, then the whole captured chain forming) lasts this long (real time)
   lookBackMs: 500,             // it begins this much game time before the touch
   slowFrom: -150,              // game ms relative to the touch (the moment the opponent reaches your line, when the star is thrown): before this, real speed...
   slowTo: 620,                 // ...a crawl from there through the wind-up, the flight along your line and the landing, until this...

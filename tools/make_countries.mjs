@@ -17,13 +17,13 @@ const CACHE = path.join(here, '.cache', 'ne_110m_admin_0_countries.geojson');
 const URL = 'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson';
 const OUT = path.join(here, '..', 'public', 'countries.json');
 
-const TARGET_CELLS = 6500;   // land cells a country should have (a world arena has ~6700)
-const MIN_CELLS = 1100;      // below this the arena is too small to play: scale it up
-const MAX_DIM = 300;         // largest grid side
+const TARGET_CELLS = 26000;  // land cells a country should have (the world arena has ~25000)
+const MIN_CELLS = 4400;      // below this the arena is too small to play: scale it up
+const MAX_DIM = 600;         // largest grid side
 const MARGIN = 3;            // ocean cells left around the map
-const HOLE_FILL = 250;       // enclosed water smaller than this becomes land
-const BRIDGE_MAX = 16;       // join landmasses closer than this many cells
-const MIN_ISLAND = 40;       // islands smaller than this are dropped unless bridged
+const HOLE_FILL = 1000;       // enclosed water smaller than this becomes land
+const BRIDGE_MAX = 32;       // join landmasses closer than this many cells
+const MIN_ISLAND = 160;       // islands smaller than this are dropped unless bridged
 // Antarctica, plus territories whose borders or status are disputed (the game is for a broad audience and takes no side): these are
 // not offered as playable countries. Their land still appears on the world map.
 const SKIP = new Set(['ATA', 'PSX', 'TWN', 'SAH', 'CYN', 'SOL', 'KOS', 'FLK']);
@@ -224,7 +224,7 @@ for (const f of data.features) {
   const lon0 = Math.min(...pts.map(q => q[0])), lon1 = Math.max(...pts.map(q => q[0])), lat0 = Math.min(...pts.map(q => q[1])), lat1 = Math.max(...pts.map(q => q[1]));
   const shape = buildShape(arenaPolys, lon0, lon1, lat0, lat1);
   const land = shape.grid.count();
-  if (land < 400) { console.error('skipping (too small after cleanup):', p.NAME, land); continue; }
+  if (land < 1600) { console.error('skipping (too small after cleanup):', p.NAME, land); continue; }
 
   // simplified outline for the picker, in true lon/lat (not shifted)
   const rings = polys.flatMap(poly => poly.slice(0, 1)).filter(r => ringArea(r) > 0.02 || polys.length === 1);

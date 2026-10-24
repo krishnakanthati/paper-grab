@@ -27,10 +27,10 @@ test('every country is a valid arena: right mask size, enough land, an ocean mar
   for (const c of countries) {
     const { nx, ny } = c.shape, land = decodeMask(c.shape);
     assert.equal(land.length, nx * ny);
-    assert.ok(nx <= 300 && ny <= 300 && nx >= 20 && ny >= 20, `${c.name}: grid ${nx}x${ny}`);
+    assert.ok(nx <= 600 && ny <= 600 && nx >= 20 && ny >= 20, `${c.name}: grid ${nx}x${ny}`);
     let count = 0; for (const v of land) count += v;
-    assert.ok(count >= 1100, `${c.name}: only ${count} land cells`);
-    assert.ok(count <= 9000, `${c.name}: ${count} land cells is too many`);
+    assert.ok(count >= 4400, `${c.name}: only ${count} land cells`);
+    assert.ok(count <= 36000, `${c.name}: ${count} land cells is too many`);
     const at = (x, y) => (x >= 0 && y >= 0 && x < nx && y < ny ? land[y * nx + x] : 0);
     for (let y = 0; y < ny; y++) for (let x = 0; x < nx; x++) {
       if (!at(x, y)) continue;
@@ -63,9 +63,9 @@ test('every country can actually be played: arena builds, every player spawns in
   }
 });
 
-test('the whole catalogue is small enough to ship (under 700 KB) and parses fast', () => {
+test('the whole catalogue is small enough to ship (under 2 MB) and parses fast', () => {
   const size = fs.statSync(new URL('../../public/countries.json', import.meta.url)).size;
-  assert.ok(size < 700 * 1024, 'countries.json is ' + (size / 1024).toFixed(0) + ' KB');
+  assert.ok(size < 2048 * 1024, 'countries.json is ' + (size / 1024).toFixed(0) + ' KB');
   const t0 = performance.now();
   parseCountries(JSON.parse(fs.readFileSync(new URL('../../public/countries.json', import.meta.url), 'utf8')));
   assert.ok(performance.now() - t0 < 200, 'parsing took ' + (performance.now() - t0).toFixed(0) + ' ms');
@@ -78,6 +78,6 @@ test('a thin country keeps its shape (Chile is a long strip, not a few blobs) an
     const c = countries.find(x => x.name === name);
     if (!c) continue;
     let land = 0; for (const v of decodeMask(c.shape)) land += v;
-    assert.ok(land >= 1100, `${name} is too small to play (${land} cells)`);
+    assert.ok(land >= 4400, `${name} is too small to play (${land} cells)`);
   }
 });
