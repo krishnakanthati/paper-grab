@@ -94,7 +94,7 @@ async function main() {
   function showStart() {
     progression.render(); characterPicker?.refresh();
     picker.resume(); characterPicker?.resume();
-    overlay.show({ title: 'paper grab', text: INTRO, button: 'play', picker: true, onClick: startRound });
+    overlay.show({ title: 'loopy land', text: INTRO, button: 'play', picker: true, onClick: startRound });
     overlay.setButton('play', true);
   }
 

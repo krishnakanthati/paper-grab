@@ -1,4 +1,4 @@
-# Paper Grab
+# Loopy Land
 
 A Paper.io 2 style territory game for YouTube Playables. Play on the whole world or on any of 169 countries, as one of
 20 little 3D characters. One Three.js (WebGL) scene draws everything in the game, ground, lines, effects and characters, seen from a

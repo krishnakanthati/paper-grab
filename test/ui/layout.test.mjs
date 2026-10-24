@@ -143,14 +143,14 @@ test('no icon has a border: round buttons, the touch pad, the character arrows a
 
 test('branding: a title, description, icons, manifest and social tags in the page head, and the logo on the start panel', () => {
   const head = html.slice(0, html.indexOf('</head>'));
-  assert.match(head, /<title>Paper Grab: [^<]+<\/title>/);
+  assert.match(head, /<title>Loopy Land: [^<]+<\/title>/);
   for (const tag of ['name="description"', 'rel="icon" type="image/svg+xml"', 'rel="apple-touch-icon"', 'rel="manifest"', 'property="og:title"', 'property="og:image"', 'name="twitter:card"', 'rel="canonical"', 'name="theme-color"']) assert.ok(head.includes(tag), `missing ${tag}`);
   assert.match(html, /<svg id="logo" width="44" height="44"/, 'the logo has its own size, so it is small even if the stylesheet has not loaded');
   assert.match(rule('#logo'), /position:\s*absolute/); assert.match(rule('#logo'), /top:[^;]*safe-t/); assert.match(rule('#logo'), /left:[^;]*safe-l/);
   assert.match(rule('#logo'), /width:\s*44px/, 'small, in the top-left corner');
   for (const f of ['logo.svg', 'favicon.svg', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png', 'og-image.png', 'manifest.webmanifest']) assert.ok(fs.existsSync(root + 'public/' + f), `public/${f} is missing`);
   const manifest = JSON.parse(fs.readFileSync(root + 'public/manifest.webmanifest', 'utf8'));
-  assert.equal(manifest.name, 'Paper Grab'); assert.ok(manifest.icons.some(i => i.sizes === '512x512'));
+  assert.equal(manifest.name, 'Loopy Land'); assert.ok(manifest.icons.some(i => i.sizes === '512x512'));
 });
 
 import { bust, hashOf } from '../../tools/cachebust.mjs';

@@ -1,4 +1,4 @@
-"""Draws the Paper Grab logo (the same picture as public/logo.svg) into PNG icons and a social card, with Pillow.
+"""Draws the Loopy Land logo (the same picture as public/logo.svg) into PNG icons and a social card, with Pillow.
    python3 tools/make_icons.py   ->   public/icon-192.png, icon-512.png, apple-touch-icon.png, og-image.png"""
 import os
 from PIL import Image, ImageDraw, ImageFont
@@ -66,7 +66,7 @@ def card(w=1200, h=630):
     img = gradient((w, h), (0x52, 0xc6, 0xf6), (0x1f, 0x86, 0xe6)).convert('RGBA')
     mark = logo(380); img.alpha_composite(mark, (90, (h - 380) // 2))
     d = ImageDraw.Draw(img)
-    d.text((520, 210), 'Paper Grab', font=font(120), fill=(255, 255, 255), stroke_width=4, stroke_fill=(0x1c, 0x5f, 0xc2))
+    d.text((520, 210), 'Loopy Land', font=font(120), fill=(255, 255, 255), stroke_width=4, stroke_fill=(0x1c, 0x5f, 0xc2))
     d.text((524, 360), 'claim the world, one loop at a time', font=font(40), fill=(0xe8, 0xfb, 0xf4))
     return img.convert('RGB')
 

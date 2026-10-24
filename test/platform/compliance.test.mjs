@@ -46,7 +46,7 @@ test('the YouTube page makes no reference to any outside URL except Google\'s ow
   const page = forPlayables(fs.readFileSync(new URL('../../index.html', import.meta.url), 'utf8'));
   const urls = page.match(/https?:\/\/[^\s"'<>]+/g) ?? [];
   assert.deepEqual(urls, ['https://www.youtube.com/game_api/v1'], 'only the Playables SDK');
-  assert.match(page, /<title>Paper Grab/); assert.match(page, /name="description"/);
+  assert.match(page, /<title>Loopy Land/); assert.match(page, /name="description"/);
 });
 
 test('the code is only minified, not obfuscated: no string-array decoders or encoded payloads, and the source is plain TypeScript', () => {
