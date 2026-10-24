@@ -186,7 +186,7 @@ export function createSceneRenderer(shell: Shell, overlayHost: HTMLElement, game
         sdt = dtMs * speed; R.g += sdt; R.r += dtMs; R.clock += sdt; snow = R.clock; rf = 1;
         while (R.next >= 0 && R.g >= (R.stars - 1 - R.next) * REPLAY.starGapMs) launchStar(R, R.next--);      // the throw starts the moment the opponent touches your line (g = 0), as it did live
         if (R.fx && R.g >= R.landG + DEATH.ms + 60) characters.holdChains(false);      // the angel has gone: now the capture chain forms, the victim joining its captor's line
-        if (R.g >= R.landG && !R.fx) { R.fx = true; const v = R.saved[0]; deathFx(v.x, v.y, v.angle, 1, 1 / replaySpeed(R.landG)); }
+        if (R.g >= R.landG && !R.fx) { R.fx = true; const v = R.saved[0]; deathFx(v.x, v.y, v.angle, 1, 1 / replaySpeed(R.landG + DEATH.ms / 2)); }
         if (R.r >= REPLAY.ms) restore(); else pose(R);
       } else if (game.running) {
         history.push(nowMs, snapshot(f));

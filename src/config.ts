@@ -133,8 +133,8 @@ export const REPLAY = {
   ms: 5000,                    // the replay of the fatal hit (slow through the throw and every star's flight and hit, then the angel finish at normal speed) lasts this long (real time)
   lookBackMs: 500,             // it begins this much game time before the touch
   slowFrom: -150,              // game ms relative to the touch (the moment the opponent reaches your line, when the star is thrown): before this, real speed...
-  slowTo: 620,                 // ...a crawl from there through the wind-up, the flight along your line and the landing, until this...
-  speedBefore: 1, speedSlow: 0.45, speedAfter: 1,   // ...then the aftermath
+  slowTo: 700,                 // ...a crawl from there through the wind-up, the flight along your line and the landing, until this...
+  speedBefore: 1, speedSlow: 0.3, speedAfter: 1,   // ...then the aftermath
   throwFlyMs: 300,             // the replayed plane's flight (game ms; plus the wind-up)
   starGapMs: 70,               // stars of a multi-star throw are this far apart (ms); a throw is one star for now
   swingLeadMs: 100,            // a close swing starts this long before the hit
