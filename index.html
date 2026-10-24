@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#1c97f2">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Paper Grab: claim the world, one loop at a time</title>
+<meta name="description" content="Paper Grab is a fast territory game: leave your colour, loop back home to claim land, and don't let anyone touch your line. Play the whole world or any of 169 countries as one of 20 cute 3D characters.">
+<meta name="application-name" content="Paper Grab">
+<meta name="apple-mobile-web-app-title" content="Paper Grab">
+<meta name="author" content="Paper Grab">
+<link rel="canonical" href="https://krishnakanthati.github.io/paper-grab/">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Paper Grab">
+<meta property="og:title" content="Paper Grab: claim the world, one loop at a time">
+<meta property="og:description" content="Leave your colour, loop back home to claim land. Play the world or any of 169 countries as a cute 3D character.">
+<meta property="og:image" content="https://krishnakanthati.github.io/paper-grab/og-image.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta property="og:url" content="https://krishnakanthati.github.io/paper-grab/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Paper Grab: claim the world, one loop at a time">
+<meta name="twitter:description" content="Leave your colour, loop back home to claim land. Play the world or any of 169 countries as a cute 3D character.">
+<meta name="twitter:image" content="https://krishnakanthati.github.io/paper-grab/og-image.png">
+<link rel="stylesheet" href="style.css">
+<!-- the YouTube Playables SDK must load before any game code -->
+<script src="https://www.youtube.com/game_api/v1"></script>
+</head>
+<body>
+<div id="stage">
+  <div id="progress" aria-label="your share of the world">
+    <div id="plbl">1%</div>
+    <div id="ptrack">
+      <div id="pfill"></div>
+    </div>
+  </div>
+  <div id="bar">
+    <div id="kills" class="pill" title="players you have captured"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M10.2 13.8a3.6 3.6 0 0 0 5.1 0l2.6-2.6a3.6 3.6 0 0 0-5.1-5.1l-.9.9" fill="none" stroke="#1b2a6b" stroke-width="2.4" stroke-linecap="round"/><path d="M13.8 10.2a3.6 3.6 0 0 0-5.1 0l-2.6 2.6a3.6 3.6 0 0 0 5.1 5.1l.9-.9" fill="none" stroke="#1b2a6b" stroke-width="2.4" stroke-linecap="round"/></svg><b id="killn">0</b></div>
+    <button id="pause" class="round" aria-label="pause" title="pause (p)"></button>
+    <button id="snd" class="round" aria-label="toggle sound" title="sound (m)"></button>
+    <button id="tilt" class="round" aria-label="tilt to steer" hidden></button>
+  </div>
+  <div id="hint" role="status" hidden></div>
+  <div id="toast" role="status" hidden></div>
+  <div id="fx" aria-live="off"></div>
+  <div id="miniwrap" class="glass"><canvas id="mini" width="220" height="82"></canvas></div>
+  <div id="ptr" aria-hidden="true">
+    <div id="ptrBubble">
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19.6 12a7.6 7.6 0 1 1-2.5-5.6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M19.8 3.8v4.6h-4.6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <svg class="tick" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 12.6 4.2 4.2L18.2 8" pathLength="1" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <svg class="cross" viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 7.5l9 9M16.5 7.5l-9 9" pathLength="1" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/></svg>
+    </div>
+    <span id="ptrLabel"></span>
+  </div>
+  <div id="dpad" aria-label="direction buttons">
+    <button class="round dir" data-dir="0" aria-label="up"><svg viewBox="0 0 24 24" width="22" height="22"><path d="m5 15 7-7 7 7" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <button class="round dir" data-dir="3" aria-label="left"><svg viewBox="0 0 24 24" width="22" height="22"><path d="m15 5-7 7 7 7" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <button class="round dir" data-dir="1" aria-label="right"><svg viewBox="0 0 24 24" width="22" height="22"><path d="m9 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <button class="round dir" data-dir="2" aria-label="down"><svg viewBox="0 0 24 24" width="22" height="22"><path d="m5 9 7 7 7-7" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+  </div>
+  <div id="ov">
+    <svg id="logo" width="44" height="44" viewBox="0 0 96 96" role="img" aria-label="Paper Grab logo">
+      <defs>
+        <linearGradient id="logoSea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#52c6f6"/><stop offset="1" stop-color="#1f86e6"/></linearGradient>
+      </defs>
+      <rect width="96" height="96" rx="24" fill="url(#logoSea)"/>
+      <path d="M13 52C13 31 33 20 52 24c19 4 32 16 30 34-2 17-22 26-40 22C24 76 13 67 13 52z" fill="#e8fbf4"/>
+      <path d="M13 52c0-12 8-21 20-25l8 31C28 63 17 63 13 52z" fill="#ef4b4b"/>
+      <path d="M30 69C46 51 60 57 69 42" fill="none" stroke="#ffb3b3" stroke-width="7" stroke-linecap="round"/>
+      <rect x="58" y="22" width="28" height="26" rx="10" fill="#fff"/>
+      <rect x="60.5" y="24.5" width="23" height="21" rx="8" fill="#3b82f6"/>
+      <circle cx="67.5" cy="35" r="4.3" fill="#fff"/><circle cx="77" cy="35" r="4.3" fill="#fff"/>
+      <circle cx="68.2" cy="35.6" r="2.7" fill="#141824"/><circle cx="77.7" cy="35.6" r="2.7" fill="#141824"/>
+      <circle cx="69" cy="34.6" r=".9" fill="#fff"/><circle cx="78.5" cy="34.6" r=".9" fill="#fff"/>
+      <ellipse cx="63.6" cy="40.5" rx="2.2" ry="1.4" fill="#ff9fb0"/><ellipse cx="81.4" cy="40.5" rx="2.2" ry="1.4" fill="#ff9fb0"/>
+</svg>
+    <h1 id="title">paper grab</h1>
+    <p id="sub">loop out. claim land. don't get cut.</p>
+    <div id="mid">
+      <div id="picker" hidden>
+        <div id="pickerHead"><span id="chosen">whole world</span><span id="pickStatus"></span></div>
+        <div id="conqStat" aria-live="polite"></div>
+        <div id="worldmap" aria-label="3d world map: tap a country to play there"></div>
+        <div id="countryList" role="group" aria-label="countries"></div>
+      </div>
+      <!-- character column: char picker · trail swatches · play button -->
+      <div id="charCol">
+        <div id="charPick" role="group" aria-label="choose your character">
+          <button id="charPrev" class="round" aria-label="previous character"><svg viewBox="0 0 24 24" width="16" height="16"><path d="m15 5-7 7 7 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <div id="charStage" aria-hidden="true"></div>
+          <button id="charNext" class="round" aria-label="next character"><svg viewBox="0 0 24 24" width="16" height="16"><path d="m9 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <span id="charName" aria-live="polite"></span>
+        </div>
+        <div id="trailPick" role="group" aria-label="choose your line style"></div>
+        <div id="actions">
+          <button id="btn" aria-label="play"><svg class="play-ico" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="playFace" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fe0ff"/><stop offset="1" stop-color="#2f8cf0"/></linearGradient><linearGradient id="playFaceOn" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#86f0b0"/><stop offset="1" stop-color="#1fb866"/></linearGradient></defs><path d="M8.2 4.9v14.2a1.1 1.1 0 0 0 1.66.95l11.6-7.1a1.1 1.1 0 0 0 0-1.9L9.86 3.95A1.1 1.1 0 0 0 8.2 4.9z" class="face"/><path d="M9 6.2c0-.4.4-.6.7-.4l9.4 5.7" class="shine"/></svg><span id="btnLabel" class="sr-only">play</span></button>
+        </div>
+      </div>
+    </div>
+    <button id="btn2" class="secondary" hidden></button>
+    <div id="keys">
+      <span><kbd aria-label="left"><svg viewBox="0 0 24 24" width="11" height="11"><path d="m15 5-7 7 7 7" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></kbd><kbd aria-label="up"><svg viewBox="0 0 24 24" width="11" height="11"><path d="m5 15 7-7 7 7" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></kbd><kbd aria-label="right"><svg viewBox="0 0 24 24" width="11" height="11"><path d="m9 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></kbd><kbd aria-label="down"><svg viewBox="0 0 24 24" width="11" height="11"><path d="m5 9 7 7 7-7" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></kbd> or mouse: steer</span>
+      <span><kbd>enter</kbd> / <kbd>space</kbd>: play</span>
+      <span><kbd>p</kbd> / <kbd>esc</kbd>: pause</span>
+      <span><kbd>m</kbd>: sound</span>
+    </div>
+  </div>
+</div>
+<script src="game.js"></script>
+</body>
+</html>

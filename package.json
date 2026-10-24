@@ -1,0 +1,21 @@
+{
+  "name": "paper-grab",
+  "private": true,
+  "version": "0.2.0",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test \"test/**/*.test.mjs\"",
+    "check": "tsc --noEmit && node --test \"test/**/*.test.mjs\"",
+    "build:playables": "node build.mjs --playables"
+  },
+  "dependencies": {
+    "three": "^0.186.1"
+  },
+  "devDependencies": {
+    "@types/three": "^0.186.0",
+    "esbuild": "^0.28.2",
+    "typescript": "^7.0.2"
+  }
+}

@@ -1,0 +1,641 @@
+
+/* ---------- design tokens: change a size here and the whole HUD follows ---------- */
+:root {
+  --row-h: 32px;                 /* one height for every pill, bar and avatar in the HUD */
+  --btn: 40px;                   /* round buttons */
+  --gap: 10px;
+  --pad: 12px;
+  --fs: 14px;
+  --safe-t: env(safe-area-inset-top, 0px);
+  --safe-r: env(safe-area-inset-right, 0px);
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-l: env(safe-area-inset-left, 0px);
+  --ink: #0e1e5e;
+  --glass: rgba(255, 255, 255, .88);
+  --shadow: 0 8px 24px rgba(10, 30, 110, .28);
+  /* enhanced ocean blue palette */
+  --ocean-deep: #0b1d6e;
+  --ocean-mid: #1044b8;
+  --ocean-bright: #1a8fe3;
+  --ocean-cyan: #0cdcfa;
+  --ocean-glow: rgba(12, 220, 250, 0.35);
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body {
+  margin: 0; width: 100%; height: 100%; height: 100dvh; overflow: hidden;
+  background: radial-gradient(ellipse at 30% 40%, #1044c8 0%, #0b1d6e 55%, #071244 100%);
+  overscroll-behavior: none; touch-action: none; user-select: none; -webkit-user-select: none;
+  font-family: 'Outfit', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; font-size: var(--fs);
+}
+#stage { position: fixed; inset: 0; height: 100dvh; }
+canvas { display: block; }
+svg { display: block; }
+button { font: inherit; }
+
+/* ---------- top progress bar: label, then a rounded track ---------- */
+#progress {
+  position: absolute; top: calc(var(--safe-t) + var(--pad)); right: calc(var(--safe-r) + var(--pad));
+  width: clamp(130px, 30vw, 360px); display: flex; align-items: center; gap: 8px; pointer-events: none;
+}
+#plbl {
+  height: var(--row-h); min-width: calc(var(--row-h) * 1.35); padding: 0 12px; display: flex; align-items: center; justify-content: center;
+  border-radius: 999px; background: #fff; color: #3a56d4; font-weight: 800; font-size: .9em; box-shadow: var(--shadow);
+}
+#ptrack {
+  position: relative; flex: 1; height: var(--row-h); padding: 4px; border-radius: 999px; background: rgba(255, 255, 255, .55);
+  border: 2px solid rgba(255, 255, 255, .92); box-shadow: inset 0 2px 5px rgba(30, 70, 140, .25), var(--shadow);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+}
+#pfill {
+  position: relative; height: 100%; width: 14px; border-radius: 999px; overflow: hidden;
+  background: linear-gradient(90deg, #2fd8a4 0%, #36b3ff 55%, #8c6bff 100%); transition: width .45s cubic-bezier(.22, .8, .3, 1);
+}
+#pfill::after { content: ''; position: absolute; left: 5px; right: 5px; top: 2px; height: 36%; border-radius: 999px; background: linear-gradient(180deg, rgba(255, 255, 255, .65), rgba(255, 255, 255, 0)); }
+
+/* ---------- eliminations ---------- */
+.pill {
+  position: absolute; height: var(--row-h); display: flex; align-items: center; gap: 6px; padding: 0 14px 0 9px; border-radius: 999px;
+  background: var(--glass); box-shadow: var(--shadow); color: var(--ink); font-weight: 800; pointer-events: none;
+}
+#kills { position: static; }                       /* it is the first item of the #bar row now */
+
+/* ---------- round buttons (pause, sound) ---------- */
+#bar { position: absolute; top: calc(var(--safe-t) + var(--pad)); left: calc(var(--safe-l) + var(--pad)); display: flex; flex-flow: row nowrap; align-items: center; gap: var(--gap); }
+.round {
+  width: var(--btn); height: var(--btn); display: flex; align-items: center; justify-content: center; padding: 0; border-radius: 50%;
+  color: #1b2233; background: var(--glass); border: 1px solid rgba(255, 255, 255, .95); box-shadow: var(--shadow); cursor: pointer;
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: transform .08s ease, background .15s ease;
+}
+.round:hover { background: #fff; }
+.round:active { transform: scale(.93); }
+.round:focus-visible, #btn:focus-visible, .picker-item:focus-visible { outline: 3px solid #7aa7ff; outline-offset: 2px; }
+
+/* ---------- leaderboard: [percentage pill][avatar with rank], all one height ---------- */
+
+/* ---------- minimap (bottom left) ---------- */
+.glass { position: absolute; background: var(--glass); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, .85); border-radius: 18px; box-shadow: 0 6px 24px rgba(20, 40, 70, .18); pointer-events: none; }
+#miniwrap { bottom: calc(var(--safe-b) + var(--pad)); left: calc(var(--safe-l) + var(--pad)); padding: 5px; }
+#mini { width: clamp(110px, 22vw, 190px); height: auto; border-radius: 13px; }
+
+/* ---------- touch direction buttons (bottom right), only on touch devices ---------- */
+#dpad { display: none; position: absolute; right: calc(var(--safe-r) + var(--pad) + 4px); bottom: calc(var(--safe-b) + var(--pad) + 4px); --d: calc(var(--btn) + 6px); width: calc(var(--d) * 3); height: calc(var(--d) * 3); }
+#dpad .dir { position: absolute; width: var(--d); height: var(--d); font-size: 16px; touch-action: none; }
+#dpad [data-dir="0"] { left: var(--d); top: 0; }
+#dpad [data-dir="3"] { left: 0; top: var(--d); }
+#dpad [data-dir="1"] { right: 0; top: var(--d); }
+#dpad [data-dir="2"] { left: var(--d); bottom: 0; }
+
+/* ---------- the start / pause panel ---------- */
+#ov {
+  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; gap: 12px; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  padding: calc(var(--safe-t) + 20px) calc(var(--safe-r) + 16px) calc(var(--safe-b) + 20px) calc(var(--safe-l) + 16px);
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(12, 220, 250, .18) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 50% at 80% 80%, rgba(80, 120, 255, .22) 0%, transparent 50%),
+    radial-gradient(ellipse at center, rgba(28, 80, 200, .72) 0%, rgba(8, 18, 70, .96) 100%);
+  color: #fff; text-align: center; touch-action: pan-y; overflow: hidden;
+}
+/* animated floating orb blobs in the background */
+#ov::before, #ov::after {
+  content: ''; position: absolute; border-radius: 50%; pointer-events: none; z-index: 0;
+  animation: orb-drift 14s ease-in-out infinite alternate;
+}
+#ov::before {
+  width: 520px; height: 520px;
+  background: radial-gradient(circle, rgba(12, 220, 250, .22) 0%, rgba(18, 100, 220, .08) 50%, transparent 70%);
+  top: -180px; left: -100px;
+  animation-duration: 16s;
+}
+#ov::after {
+  width: 420px; height: 420px;
+  background: radial-gradient(circle, rgba(100, 140, 255, .2) 0%, rgba(50, 80, 200, .07) 50%, transparent 70%);
+  bottom: -140px; right: -80px;
+  animation-duration: 20s; animation-direction: alternate-reverse;
+}
+@keyframes orb-drift {
+  0%   { transform: translate(0, 0) scale(1); }
+  33%  { transform: translate(40px, -30px) scale(1.06); }
+  66%  { transform: translate(-20px, 20px) scale(.97); }
+  100% { transform: translate(30px, 10px) scale(1.04); }
+}
+#ov > * { position: relative; z-index: 1; }        /* lift all children above the orb pseudo-elements */
+#ov > :first-child { margin-top: auto; }           /* centre when there is room, scroll from the top when there isn't */
+#ov > :last-child { margin-bottom: auto; }
+#ov h1 {
+  margin: 0; font-size: clamp(28px, 7vw, 44px); letter-spacing: 1px; font-weight: 900;
+  background: linear-gradient(135deg, #fff 20%, #7ee8fa 55%, #a0c4ff 80%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  filter: drop-shadow(0 0 18px rgba(12, 220, 250, .55)) drop-shadow(0 2px 8px rgba(0, 0, 0, .4));
+  animation: title-shimmer 6s ease-in-out infinite alternate;
+}
+@keyframes title-shimmer {
+  0%   { filter: drop-shadow(0 0 14px rgba(12, 220, 250, .45)) drop-shadow(0 2px 8px rgba(0, 0, 0, .4)); }
+  100% { filter: drop-shadow(0 0 28px rgba(12, 220, 250, .85)) drop-shadow(0 0 10px rgba(160, 196, 255, .5)) drop-shadow(0 2px 8px rgba(0, 0, 0, .4)); }
+}
+#ov p { margin: 0; font-size: 1.03em; opacity: .82; max-width: min(88%, 440px); line-height: 1.5; letter-spacing: .01em; }
+#btn {
+  margin-top: 6px; min-height: 48px; padding: 0 40px; font-size: 1.2em; font-weight: 700; border: 0; border-radius: 999px; cursor: pointer; color: #fff;
+  background: linear-gradient(180deg, #4be08a, #1fb866); box-shadow: 0 8px 22px rgba(20, 150, 90, .5), inset 0 1px 0 rgba(255, 255, 255, .5);
+}
+#btn:active { transform: translateY(1px); }
+#btn[disabled] { opacity: .55; cursor: default; box-shadow: none; }
+#keys { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; font-size: .9em; opacity: .85; }
+kbd { display: inline-block; min-width: 18px; padding: 2px 7px; margin: 0 2px; border-radius: 9px; font: 600 11.5px 'Outfit', system-ui, sans-serif; color: #0e1e5e; background: rgba(255, 255, 255, .92); box-shadow: 0 2px 0 rgba(0, 0, 0, .2), 0 0 0 1px rgba(255,255,255,.5); }
+
+/* ---------- country picker (inside the start panel) ---------- */
+#picker { width: min(94vw, 760px); display: flex; flex-direction: column; gap: 10px; align-items: stretch; }
+#pickerHead { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+#chosen {
+  font-weight: 800; font-size: 1.15em;
+  text-shadow: 0 0 12px rgba(12, 220, 250, .6), 0 2px 8px rgba(0, 0, 0, .35);
+  background: linear-gradient(135deg, #fff 30%, #7ee8fa 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+#worldmap {
+  position: relative; width: 100%; aspect-ratio: 2 / 1; border-radius: 22px; overflow: visible; background: none; border: 0; touch-action: manipulation;
+  /* subtle glow ring around the globe */
+  filter: drop-shadow(0 0 22px rgba(12, 180, 255, .3)) drop-shadow(0 8px 32px rgba(8, 18, 80, .5));
+  transition: filter .3s ease;
+}
+#worldmap:hover { filter: drop-shadow(0 0 32px rgba(12, 220, 250, .5)) drop-shadow(0 8px 32px rgba(8, 18, 80, .5)); }
+#worldmap canvas { width: 100%; height: 100%; }
+#pickStatus { font-size: .85em; opacity: .9; min-height: 1.2em; }
+#countryList { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; max-height: 96px; overflow-y: auto; padding: 2px; touch-action: pan-y; }
+.picker-item {
+  height: 34px; padding: 0 14px; border-radius: 999px;
+  border: 1.5px solid rgba(255, 255, 255, .5);
+  background: linear-gradient(135deg, rgba(255, 255, 255, .18) 0%, rgba(100, 180, 255, .12) 100%);
+  color: #fff; font-weight: 700; cursor: pointer; white-space: nowrap;
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 2px 8px rgba(8, 24, 80, .25), inset 0 1px 0 rgba(255, 255, 255, .25);
+  transition: all .18s ease;
+}
+.picker-item:hover {
+  background: linear-gradient(135deg, rgba(255, 255, 255, .32) 0%, rgba(120, 200, 255, .22) 100%);
+  border-color: rgba(255, 255, 255, .8);
+  box-shadow: 0 4px 16px rgba(8, 24, 80, .35), 0 0 12px rgba(12, 200, 255, .25), inset 0 1px 0 rgba(255, 255, 255, .4);
+}
+.picker-item.on {
+  background: linear-gradient(135deg, rgba(255, 220, 80, .95) 0%, rgba(255, 165, 20, .9) 100%);
+  color: #4a2e00; border-color: rgba(255, 255, 255, .9); font-weight: 800;
+  box-shadow: 0 4px 18px rgba(255, 160, 20, .55), inset 0 1px 0 rgba(255, 255, 255, .5);
+}
+.picker-item.conquered:not(.on) {
+  background: linear-gradient(135deg, rgba(60, 200, 120, .4) 0%, rgba(20, 160, 90, .3) 100%);
+  border-color: rgba(180, 255, 210, .7);
+  box-shadow: 0 2px 8px rgba(20, 120, 70, .3), 0 0 10px rgba(60, 200, 120, .2);
+}
+.picker-item.conquered::after { content: " ⚑"; }
+
+/* ---------- screens ---------- */
+@media (hover: none) and (pointer: coarse) {            /* phones and tablets: bigger touch targets, direction buttons, no key hints */
+  :root { --btn: 46px; }
+  #dpad { display: block; }
+  #keys { display: none; }
+}
+@media (max-width: 520px) {                              /* small phones in portrait */
+  :root { --row-h: 28px; --fs: 13px; --pad: 10px; --gap: 8px; }
+  #progress { width: clamp(120px, 46vw, 260px); }
+  #mini { width: clamp(100px, 30vw, 150px); }
+  #worldmap { border-radius: 16px; }
+}
+@media (max-height: 470px) {                             /* phones in landscape: everything compact, panel scrolls */
+  :root { --row-h: 26px; --btn: 38px; --fs: 12.5px; --pad: 8px; --gap: 6px; }
+  #ov { gap: 8px; padding-top: calc(var(--safe-t) + 10px); padding-bottom: calc(var(--safe-b) + 10px); }
+  #ov h1 { font-size: 24px; }
+  #ov p { display: none; }
+  #keys { display: none; }
+  #mini { width: clamp(90px, 16vw, 130px); }
+  #worldmap { aspect-ratio: 3 / 1; margin: -5dvh 0 -2dvh; }
+  #countryList { max-height: 56px; }
+  #dpad { --d: 40px; }
+}
+@media (min-width: 1500px) and (min-height: 800px) { :root { --row-h: 36px; --btn: 46px; --fs: 15px; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+/* secondary button: an outlined pill under the main one */
+.secondary { min-height: 42px; padding: 0 28px; border-radius: 999px; border: 2px solid rgba(255, 255, 255, .85); background: rgba(255, 255, 255, .16); color: #fff; font-weight: 700; cursor: pointer; }
+.secondary:hover { background: rgba(255, 255, 255, .3); }
+
+/* ---------- start panel: always exactly one screen, never scrolls ----------
+   The panel is a fixed-height column. The 3d map is the only flexible part and takes whatever height is left, so the
+   title, slider, play button and hints always fit whatever the screen size or orientation. */
+#ov { height: 100dvh; overflow: hidden; justify-content: center; gap: clamp(6px, 1.6dvh, 14px); touch-action: none; }
+#ov > :first-child, #ov > :last-child { margin: 0; }
+#ov h1 { font-size: clamp(22px, 5dvh, 40px); line-height: 1.05; }
+#ov p { font-size: clamp(11.5px, 1.9dvh, 15px); line-height: 1.35; }
+#picker { flex: 1 1 auto; min-height: 0; width: min(98vw, 980px); gap: clamp(6px, 1.2dvh, 10px); }
+#worldmap { flex: 1 1 auto; min-height: 90px; aspect-ratio: auto; margin: -8dvh 0 -3.2dvh; }      /* the globe takes the empty space beside the left-aligned labels above it and a little below: it is a circle, so only its poles reach the neighbours */
+#pickerHead, #conqStat { position: relative; z-index: 2; }
+/* a single row that scrolls sideways with no visible scrollbar: wheel, swipe or drag; the soft fade at both ends hints there is more */
+#countryList { flex: none; flex-wrap: nowrap; justify-content: flex-start; max-height: none; overflow-x: auto; overflow-y: hidden; padding: 2px 18px; scrollbar-width: none; -ms-overflow-style: none; touch-action: pan-x; overscroll-behavior-x: contain; cursor: pointer;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 22px, #000 calc(100% - 22px), transparent 100%); mask-image: linear-gradient(90deg, transparent 0, #000 22px, #000 calc(100% - 22px), transparent 100%); }
+#countryList::-webkit-scrollbar { display: none; }
+#countryList.dragging { scroll-behavior: auto; }
+#countryList.dragging .picker-item { pointer-events: none; }
+.picker-item { flex: none; height: clamp(28px, 4.6dvh, 34px); padding: 0 clamp(10px, 1.6vw, 14px); }
+#keys { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 4px 14px; margin: 0; font-size: clamp(10.5px, 1.6dvh, 13px); }
+#btn { flex: none; min-height: clamp(40px, 6.5dvh, 48px); margin-top: 0; }
+#btn2 { flex: none; min-height: clamp(36px, 5.5dvh, 42px); }
+@media (max-height: 620px) { #ov p, #keys { display: none; } }
+@media (max-height: 470px) {
+  #ov { flex-direction: row; flex-wrap: wrap; align-content: center; }
+  #ov h1 { flex: 0 0 100%; }
+  #picker { flex: 1 1 60%; height: calc(100dvh - 70px); }
+  #btn, #btn2 { align-self: center; }
+}
+/* the game's own HUD must not show through the panel */
+#stage:has(#ov[style*="flex"]) :is(#progress, #kills, #bar, #miniwrap, #dpad) { visibility: hidden; }
+
+/* ---------- button system: frosted, softly translucent glass with a little depth ----------
+   Every button shares the same recipe: a translucent gradient, a bright rim light along the top edge, a darker inner
+   edge along the bottom, a blurred backdrop and a soft shadow. Hover lifts it a touch; pressing sinks it. */
+:root {
+  --glass-top: rgba(255, 255, 255, .34); --glass-bottom: rgba(255, 255, 255, .12);
+  --rim: inset 0 1.5px 0 rgba(255, 255, 255, .75), inset 0 -2px 3px rgba(10, 30, 90, .18), inset 0 0 0 1px rgba(255, 255, 255, .22);
+  --lift: 0 8px 20px -6px rgba(10, 30, 90, .45), 0 2px 5px rgba(10, 30, 90, .2);
+  --ease: cubic-bezier(.2, .8, .3, 1);
+}
+#btn, .secondary, .round, .picker-item {
+  position: relative; isolation: isolate; -webkit-tap-highlight-color: transparent;
+  backdrop-filter: blur(10px) saturate(1.4); -webkit-backdrop-filter: blur(10px) saturate(1.4);
+  transition: transform .16s var(--ease), box-shadow .16s var(--ease), background-color .16s var(--ease), filter .16s var(--ease);
+}
+#btn:hover:not([disabled]), .secondary:hover, .round:hover, .picker-item:hover { transform: translateY(-1.5px); filter: brightness(1.07); }
+#btn:active:not([disabled]), .secondary:active, .round:active, .picker-item:active { transform: translateY(1px) scale(.985); filter: brightness(.97); }
+
+/* primary: clear glass until it is pressed, then it turns green with a soft glow */
+#btn {
+  border: 1px solid rgba(255, 255, 255, .55); color: #fff; text-shadow: 0 1px 2px rgba(10, 30, 90, .4); letter-spacing: .2px;
+  background: linear-gradient(180deg, var(--glass-top), var(--glass-bottom)); box-shadow: var(--rim), var(--lift);
+  transition-property: transform, box-shadow, background-color, filter, border-color; 
+}
+#btn:active:not([disabled]), #btn.go {
+  border-color: rgba(255, 255, 255, .7); text-shadow: 0 1px 2px rgba(0, 70, 40, .45);
+  background: linear-gradient(180deg, rgba(255, 255, 255, .3) 0, rgba(255, 255, 255, 0) 52%), linear-gradient(180deg, rgba(88, 232, 150, .92), rgba(24, 168, 98, .88));
+  box-shadow: var(--rim), 0 12px 26px -8px rgba(18, 150, 90, .7), 0 2px 6px rgba(10, 60, 40, .25);
+}
+#btn[disabled] { filter: saturate(.5); opacity: .6; box-shadow: var(--rim); }
+
+/* secondary: clear glass */
+.secondary {
+  border: 1px solid rgba(255, 255, 255, .5); color: #fff; text-shadow: 0 1px 2px rgba(10, 30, 90, .35);
+  background: linear-gradient(180deg, var(--glass-top), var(--glass-bottom)); box-shadow: var(--rim), var(--lift);
+}
+
+/* round icon buttons: bright glass discs with a dark icon */
+.round {
+  border: 1px solid rgba(255, 255, 255, .7); color: #1b2a6b;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .88), rgba(255, 255, 255, .55)); box-shadow: var(--rim), var(--lift);
+}
+.round:hover { background: linear-gradient(180deg, #fff, rgba(255, 255, 255, .72)); }
+
+/* country chips: small glass pills; the chosen one is gold glass */
+.picker-item {
+  border: 1px solid rgba(255, 255, 255, .5); color: #fff; text-shadow: 0 1px 2px rgba(10, 30, 90, .35);
+  background: linear-gradient(180deg, var(--glass-top), var(--glass-bottom)); box-shadow: var(--rim), 0 4px 10px -4px rgba(10, 30, 90, .4);
+}
+.picker-item:hover { background: linear-gradient(180deg, rgba(255, 255, 255, .46), rgba(255, 255, 255, .2)); }
+.picker-item.on {
+  color: #5a3d00; text-shadow: 0 1px 0 rgba(255, 255, 255, .5); border-color: rgba(255, 255, 255, .85);
+  background: linear-gradient(180deg, rgba(255, 255, 255, .4) 0, rgba(255, 255, 255, 0) 55%), linear-gradient(180deg, rgba(255, 214, 90, .96), rgba(255, 176, 30, .9));
+  box-shadow: var(--rim), 0 8px 18px -6px rgba(255, 170, 20, .7);
+}
+
+@media (prefers-reduced-motion: reduce) { #btn:hover, .secondary:hover, .round:hover, .picker-item:hover, #btn:active, .secondary:active, .round:active, .picker-item:active { transform: none; } }
+
+/* the play button, the secondary button and the country chips share one height */
+:root { --chip-h: clamp(32px, 5.2dvh, 38px); }
+#btn, #btn2 { height: var(--chip-h); min-height: var(--chip-h); }
+#btn { font-size: 1.05em; padding: 0 clamp(28px, 6vw, 44px); line-height: 1; }
+#btn2 { padding: 0 clamp(20px, 4vw, 28px); line-height: 1; }
+.picker-item { display: inline-flex; align-items: center; line-height: 1; }
+
+/* ---------- pull-to-refresh on the start panel ----------
+   Variables set from ui/pullRefresh.ts: --pull (px the panel is pulled down, after rubber-band resistance) and --p
+   (0..1, how close it is to triggering). Nothing here animates while the finger is down: the panel simply follows it. */
+#ov > * { translate: 0 calc(var(--pull, 0px) * .5); }
+#ov.ptr-settling > * { transition: translate .45s cubic-bezier(.2, .9, .3, 1.2); }      /* a little overshoot as it springs home */
+#ptr {
+  --pull: 0px; --p: 0; position: absolute; z-index: 30; left: 50%; top: calc(var(--safe-t) + 10px); width: 46px; margin-left: -23px;
+  display: flex; flex-direction: column; align-items: center; pointer-events: none;
+  opacity: min(1, calc(var(--p) * 1.6)); transform: translateY(calc(var(--pull) * .9 - 52px)) scale(calc(.6 + .4 * var(--p)));
+}
+#ptr.settling { transition: transform .45s cubic-bezier(.2, .9, .3, 1.2), opacity .3s ease; }
+#ptrBubble {
+  position: relative; width: 46px; height: 46px; border-radius: 50%; color: #1b2a6b; display: grid; place-items: center;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .95), rgba(255, 255, 255, .7)); border: 1px solid rgba(255, 255, 255, .8);
+  box-shadow: var(--rim), var(--lift); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+}
+#ptrBubble svg { position: absolute; inset: 0; margin: auto; }
+#ptrBubble .tick, #ptrBubble .cross { width: 24px; height: 24px; opacity: 0; transform: scale(.4); }
+#ptr.armed #ptrBubble { animation: ptr-pop .28s cubic-bezier(.2, 1.4, .4, 1); }
+#ptr.done .tick { opacity: 1; transform: scale(1); color: #1fb866; transition: opacity .2s, transform .3s cubic-bezier(.2, 1.5, .4, 1); }
+#ptr.failed .cross { opacity: 1; transform: scale(1); color: #e5484d; transition: opacity .2s, transform .3s cubic-bezier(.2, 1.5, .4, 1); }
+#ptrLabel { margin-top: 8px; white-space: nowrap; font: 600 12px/1 system-ui, sans-serif; color: #fff; text-shadow: 0 1px 3px rgba(10, 30, 90, .6); opacity: min(1, calc(var(--p) * 2)); }
+#ptr.loading #ptrLabel, #ptr.done #ptrLabel, #ptr.failed #ptrLabel { opacity: 1; }
+@keyframes ptr-spin { to { transform: rotate(360deg); } }
+
+/* one cursor for everything you can press, drag or pull: the pointing hand (including mid-drag, which used to show a grab hand) */
+button, .picker-item, #countryList, #countryList.dragging, #btn, #btn2, .round, #ov.ptr-pulling { cursor: pointer; }      /* the globe sets its own cursor (grab / grabbing / pointer): see mapView.ts */
+button[disabled], #btn[disabled] { cursor: default; }
+
+/* minimap: just the map, no card behind it; a soft shadow lifts the land off the sea */
+#miniwrap.glass { background: none; border: 0; box-shadow: none; padding: 0; backdrop-filter: none; -webkit-backdrop-filter: none; }
+#mini { border-radius: 0; filter: drop-shadow(0 3px 6px rgba(10, 40, 90, .35)); }
+
+/* pull-to-refresh bubble: no border or rim line, just a soft shadow */
+#ptrBubble { border: 0; box-shadow: 0 6px 16px -4px rgba(10, 30, 90, .4); }
+
+/* ---------- character picker, inline on the start panel: [<] 3d character [>]  [play] ----------
+   One horizontal row that never wraps and never stacks, on any screen. The character's name sits under the character
+   without taking part in the row's height. */
+#actions { flex: none; display: flex; flex-flow: row nowrap; align-items: center; justify-content: center; gap: clamp(8px, 3vw, 22px); max-width: 100%; }
+#charPick { position: relative; flex: none; display: flex; flex-flow: row nowrap; align-items: center; gap: 2px; }
+#charPick[hidden] { display: none; }
+/* glowing halo behind the character stage */
+#charStage {
+  --char: clamp(60px, 12dvh, 104px); flex: none; width: var(--char); height: var(--char); cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  position: relative;
+}
+#charStage::before {
+  content: ''; position: absolute; inset: -12px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(12, 200, 255, .22) 0%, rgba(80, 140, 255, .10) 55%, transparent 75%);
+  animation: char-halo 3.5s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+@keyframes char-halo {
+  0%   { opacity: .6; transform: scale(.9); }
+  100% { opacity: 1;  transform: scale(1.08); }
+}
+#charPick .round { flex: none; width: 34px; height: 34px; }
+#charName {
+  position: absolute; left: 50%; bottom: -15px; translate: -50% 0;
+  font: 700 12px/1 'Outfit', system-ui, sans-serif;
+  color: rgba(180, 230, 255, .95); text-shadow: 0 0 8px rgba(12, 200, 255, .6), 0 1px 3px rgba(0, 0, 0, .4);
+  white-space: nowrap; pointer-events: none; letter-spacing: .03em;
+}
+#actions { margin-bottom: 0; }                        /* play button is now inside #charCol — gap is handled by charCol */
+#charName.pop { animation: char-name-pop .38s cubic-bezier(.2, 1.4, .4, 1); }
+@keyframes char-name-pop { 0% { transform: scale(.7); opacity: .3; } 100% { transform: scale(1); opacity: 1; } }
+@media (max-width: 380px) { #charPick .round { width: 30px; height: 30px; } #btn { padding: 0 22px; } }
+@media (max-height: 560px) { #charName { display: none; } #actions { margin-bottom: 0; } }
+@media (max-height: 470px) { #charStage { --char: 54px; } #charPick .round { width: 28px; height: 28px; } }
+@media (prefers-reduced-motion: reduce) { #charName.pop { animation: none; } }
+#charPick { position: relative; }
+
+
+/* smoothness: a blurred backdrop has to be recomputed every frame while the game moves behind it, which is costly on phones.
+   In-game controls therefore use a solid translucent fill; the blur stays only on the start panel, where the scene is paused. */
+#bar .round, #dpad .round, #ptrack, .glass { backdrop-filter: none; -webkit-backdrop-filter: none; }
+#ptrack { background: rgba(255, 255, 255, .78); }
+#bar .round, #dpad .round { background: linear-gradient(180deg, rgba(255, 255, 255, .96), rgba(255, 255, 255, .8)); }
+
+#charStage { -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; }
+
+/* touch screens: no keyboard, so no key hints at all (a later rule used to switch them back on) */
+#keys[hidden] { display: none; }
+@media (hover: none) and (pointer: coarse) { #keys { display: none; } }
+/* the tilt button looks like its neighbours; it only appears on phones that have the sensor */
+#tilt[hidden] { display: none; }
+
+/* the top-left row (eliminations, pause, sound, tilt) is ONE height: every item is exactly --row-h tall, the same as the
+   progress bar and leaderboard. Round buttons are --row-h squares; on touch screens a larger invisible area keeps them easy to hit. */
+#bar > * { height: var(--row-h); min-height: var(--row-h); box-sizing: border-box; flex: none; }
+#bar .round { width: var(--row-h); min-width: var(--row-h); padding: 0; position: relative; }
+#bar .round svg { width: calc(var(--row-h) * .56); height: calc(var(--row-h) * .56); }
+#bar .round::after { content: ''; position: absolute; inset: -6px; }
+#bar #kills { padding: 0 12px 0 8px; }
+
+/* the character arrows: flat, no border and no shading, just a soft disc with a white chevron */
+#charPick .round { border: 0; box-shadow: none; background: rgba(255, 255, 255, .22); color: #fff; backdrop-filter: none; -webkit-backdrop-filter: none; filter: none; }
+#charPick .round:hover { background: rgba(255, 255, 255, .36); filter: none; }
+#charPick .round:active { background: rgba(255, 255, 255, .46); }
+
+/* key hints: the arrow keys are drawn as arrowheads, not arrow glyphs */
+kbd svg { display: block; margin: 3px 0; }
+kbd[aria-label] { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; padding: 0 6px; }
+
+/* on phones the character preview is a little larger (it is the main thing to look at in that row) */
+@media (hover: none) and (pointer: coarse) { #charStage { --char: clamp(74px, 14dvh, 116px); } }
+@media (max-height: 470px) { #charStage { --char: 62px; } }
+
+/* ---------- the play button: just a 3D play icon (no border, no text, no pill) ----------
+   A rounded triangle with a glossy face and one small soft shadow. There is no hover effect; pressing nudges it down
+   and turns it green. */
+#btn {
+  --size: clamp(46px, 8.5dvh, 66px); --thick: 3px;
+  width: var(--size); height: var(--size); min-height: 0; padding: 0; margin: 0; border: 0; border-radius: 0; background: none; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none;
+  display: inline-grid; place-items: center; color: #fff; flex: none; filter: none; text-shadow: none;
+  transition: transform .12s var(--ease);
+}
+#btn .play-ico { width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 2px 3px rgba(8, 36, 120, .3)); transition: filter .12s var(--ease); }      /* one small, soft shadow: just enough to sit on the page */
+#btn .face { fill: url(#playFace); stroke: #fff; stroke-width: .5; stroke-linejoin: round; paint-order: stroke; }
+#btn .shine { fill: none; stroke: rgba(255, 255, 255, .85); stroke-width: .9; stroke-linecap: round; }
+#btn:hover:not([disabled]) { transform: none; filter: none; box-shadow: none; }      /* no hover effect on purpose: only pressing changes it */
+#btn:active:not([disabled]), #btn.go { transform: translateY(var(--thick)); filter: none; background: none; box-shadow: none; border: 0; text-shadow: none; }
+#btn:active:not([disabled]) .play-ico, #btn.go .play-ico { filter: drop-shadow(0 1px 2px rgba(8, 80, 40, .3)); }
+#btn:active:not([disabled]) .face, #btn.go .face { fill: url(#playFaceOn); }
+#btn[disabled] { opacity: .5; filter: saturate(.4); transform: none; box-shadow: none; }
+#btn:focus-visible { outline: 3px solid #7aa7ff; outline-offset: 6px; border-radius: 50%; }
+@media (prefers-reduced-motion: reduce) { #btn:hover:not([disabled]), #btn:active:not([disabled]) { transform: none; } }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* while playing the pointer is a pointing hand over the whole game (the start panel's own controls keep theirs) */
+#stage, body { cursor: pointer; }
+#stage canvas { cursor: inherit; }
+#worldmap canvas { cursor: grab; }
+
+/* ---------- touch direction pad: a tight, quiet cross of flat discs with arrowheads ---------- */
+#dpad { --d: 50px; width: calc(var(--d) * 3 - 8px); height: calc(var(--d) * 3 - 8px); right: calc(var(--safe-r) + var(--pad) + 2px); bottom: calc(var(--safe-b) + var(--pad) + 2px); }
+#dpad .dir { width: var(--d); height: var(--d); border: 0; box-shadow: none; background: rgba(255, 255, 255, .3); color: #fff; font-size: 0; filter: none; }
+#dpad .dir svg { width: 24px; height: 24px; filter: drop-shadow(0 1px 1px rgba(10, 40, 110, .4)); }
+#dpad .dir:active { background: rgba(255, 255, 255, .5); transform: scale(.94); }
+#dpad [data-dir="0"] { left: calc(var(--d) - 4px); top: 0; }
+#dpad [data-dir="3"] { left: 0; top: calc(var(--d) - 4px); }
+#dpad [data-dir="1"] { right: 0; top: calc(var(--d) - 4px); }
+#dpad [data-dir="2"] { left: calc(var(--d) - 4px); bottom: 0; }
+@media (max-height: 470px) { #dpad { --d: 42px; } }
+
+/* ---------- narrow screens: the progress bar (top right) is shorter so it clears the top-left row ---------- */
+@media (max-width: 560px) {
+  #progress { width: min(34vw, 150px); }
+}
+
+/* ---------- pull-to-refresh, redesigned ----------
+   One refresh icon (a circular arrow) that turns as you pull, a borderless bubble that stretches with the pull, tints green and
+   pops when armed, spins smoothly while loading, and finally draws a check (or shakes with a cross if it failed). */
+#ptr { transform: translateY(calc(var(--pull) * .9 - 54px)); }
+#ptrBubble {
+  --tint: 255, 255, 255; width: 46px; height: 46px; border: 0; color: #2a56d6; aspect-ratio: 1; border-radius: 50%; transform: scale(calc(.55 + .45 * var(--p)));      /* always a perfect circle: one uniform scale, never stretched */
+  background: rgba(var(--tint), .96); box-shadow: 0 6px 16px -4px rgba(10, 30, 90, .42); backdrop-filter: none; -webkit-backdrop-filter: none;
+  transition: background .2s ease, color .2s ease;
+}
+#ptrBubble svg { position: absolute; inset: 0; margin: auto; width: 26px; height: 26px; }
+#ptrBubble .icon { transform: rotate(calc(var(--p) * 300deg)); transition: opacity .18s ease, scale .18s ease; }
+#ptrBubble .tick path, #ptrBubble .cross path { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset .38s cubic-bezier(.4, 0, .2, 1) .05s; }
+#ptrBubble .tick, #ptrBubble .cross { opacity: 1; transform: none; }
+#ptr.armed #ptrBubble { --tint: 226, 250, 236; color: #14a05a; animation: ptr-pop .32s cubic-bezier(.2, 1.5, .4, 1); }
+#ptr.loading #ptrBubble { --tint: 255, 255, 255; color: #2a56d6; }
+#ptr.loading #ptrBubble .icon { animation: ptr-spin .95s cubic-bezier(.45, .1, .55, .9) infinite; }
+#ptr.done #ptrBubble { --tint: 226, 250, 236; color: #14a05a; animation: ptr-pop .4s cubic-bezier(.2, 1.5, .4, 1); }
+#ptr.done #ptrBubble .icon, #ptr.failed #ptrBubble .icon { opacity: 0; scale: .5; animation: none; }
+#ptr.done #ptrBubble .tick path { stroke-dashoffset: 0; }
+#ptr.failed #ptrBubble { --tint: 255, 233, 233; color: #d6404a; animation: ptr-shake .42s ease; }
+#ptr.failed #ptrBubble .cross path { stroke-dashoffset: 0; }
+@keyframes ptr-spin { to { transform: rotate(360deg); } }
+@keyframes ptr-pop { 0% { translate: 0 0; } 45% { scale: 1.16; } 100% { scale: 1; } }
+@keyframes ptr-shake { 0%, 100% { translate: 0 0; } 20% { translate: -5px 0; } 40% { translate: 5px 0; } 60% { translate: -3px 0; } 80% { translate: 3px 0; } }
+@media (prefers-reduced-motion: reduce) { #ptr.loading #ptrBubble .icon { animation: none; } }
+
+/* ---------- no icon has a border: every icon button is a flat disc ---------- */
+.round, #bar .round, #dpad .dir, #charPick .round, #ptrBubble { border: 0; }
+.round { box-shadow: 0 2px 6px -1px rgba(10, 30, 90, .28); }
+#bar .round { background: rgba(255, 255, 255, .94); color: #1b2a6b; }
+#dpad .dir, #charPick .round { box-shadow: none; }
+
+/* ---------- branding on the start panel: a small logo in the top-left corner, the title stays centred ---------- */
+#logo {
+  position: absolute; top: calc(var(--safe-t) + 12px); left: calc(var(--safe-l) + 12px); width: 44px; height: 44px; flex: none; pointer-events: none;
+  filter: drop-shadow(0 3px 12px rgba(12, 180, 255, .55)) drop-shadow(0 2px 4px rgba(0, 0, 0, .3));
+  animation: logo-glow 5s ease-in-out infinite alternate;
+}
+@keyframes logo-glow {
+  0%   { filter: drop-shadow(0 3px 10px rgba(12, 180, 255, .4)) drop-shadow(0 2px 4px rgba(0, 0, 0, .3)); }
+  100% { filter: drop-shadow(0 3px 20px rgba(12, 220, 250, .8)) drop-shadow(0 2px 4px rgba(0, 0, 0, .3)); }
+}
+#ov h1 { font-weight: 900; letter-spacing: 1px; text-transform: none; font-family: 'Outfit', system-ui, sans-serif; }
+@media (max-width: 380px), (max-height: 470px) { #logo { width: 36px; height: 36px; top: calc(var(--safe-t) + 8px); left: calc(var(--safe-l) + 8px); } }
+
+/* the one-time "how to play" hint at the start of a first round */
+#hint { position: absolute; left: 50%; top: calc(var(--safe-t) + var(--pad) + var(--row-h) * 2 + 22px); translate: -50% 0; z-index: 12; max-width: min(88vw, 420px); padding: 9px 16px; border-radius: 999px; text-align: center; pointer-events: none;
+  background: rgba(255, 255, 255, .94); color: #1b2a6b; font: 700 clamp(12px, 2.2dvh, 14px)/1.3 system-ui, sans-serif; box-shadow: 0 6px 16px -6px rgba(10, 30, 90, .45);
+  opacity: 0; transform: translateY(-6px); transition: opacity .35s ease, transform .35s ease; }
+#hint[hidden] { display: none; }
+#hint.show { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { #hint { transition: none; } }
+
+/* the refresh bubble follows the finger all the way (up to half the screen) and is a perfect circle at every point of the pull */
+#ptr { transform: translateY(calc(var(--pull) - 54px)); }
+#ptrBubble { width: 46px; height: 46px; min-width: 46px; min-height: 46px; flex: none; border-radius: 50%; aspect-ratio: 1; overflow: hidden; }
+
+/* ---------- toast, conquered stats, line styles ---------- */
+#toast { position: absolute; left: 50%; translate: -50% 0; top: calc(var(--safe-t) + var(--pad) + var(--row-h) * 2 + 54px); z-index: 12; max-width: min(88vw, 420px); padding: 9px 16px; border-radius: 999px; text-align: center; pointer-events: none;
+  background: rgba(255, 255, 255, .96); color: #1b2a6b; font: 800 clamp(12px, 2.2dvh, 14px)/1.3 system-ui, sans-serif; box-shadow: 0 6px 16px -6px rgba(10, 30, 90, .45);
+  opacity: 0; transform: translateY(-6px); transition: opacity .35s ease, transform .35s ease; }
+#toast[hidden] { display: none; }
+#toast.show { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { #toast { transition: none; } }
+#conqStat { display: flex; flex-flow: row wrap; align-items: center; gap: 6px; font-weight: 700; font-size: .88em; color: rgba(255,255,255,.92); text-shadow: 0 1px 8px rgba(0, 0, 0, .35); min-height: 1.2em; }
+#conqStat .badge {
+  padding: 2px 10px; border-radius: 999px;
+  background: linear-gradient(135deg, rgba(60, 220, 130, .65), rgba(20, 160, 90, .55));
+  border: 1.5px solid rgba(180, 255, 210, .7); font-size: .9em;
+  box-shadow: 0 0 10px rgba(40, 200, 110, .3);
+}
+#trailPick { display: flex; flex-flow: row nowrap; justify-content: center; align-items: center; gap: 10px; margin-top: 2px; }
+#trailPick button {
+  width: 28px; height: 28px; padding: 0; border-radius: 50%; cursor: pointer; position: relative; background: var(--sw, #fff);
+  border: 2px solid rgba(255, 255, 255, .7);
+  box-shadow: 0 2px 8px rgba(8, 24, 80, .3), 0 0 0 0 rgba(12, 220, 250, 0);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+#trailPick button:hover { transform: scale(1.15); box-shadow: 0 4px 14px rgba(8, 24, 80, .4), 0 0 12px rgba(12, 220, 250, .35); }
+#trailPick button.on {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 200, 40, .9), 0 4px 14px rgba(8, 24, 80, .4), 0 0 18px rgba(255, 200, 40, .45);
+  transform: scale(1.12);
+}
+#trailPick button.locked { opacity: .9; }
+#trailPick button.locked::after { content: ''; position: absolute; inset: 7px 8px; border-radius: 3px; background: rgba(255, 255, 255, .9); }
+#stage:has(#ov[style*="flex"]) #toast { visibility: hidden; }
+#charStage.locked { filter: none; }
+
+/* ---------- active power-ups ---------- */
+#fx { position: absolute; left: 50%; translate: -50% 0; top: calc(var(--safe-t) + var(--pad) + var(--row-h) + 46px); z-index: 6; display: flex; gap: 6px; pointer-events: none; }
+#fx .fx { padding: 3px 11px; border-radius: 999px; color: #fff; font: 800 clamp(11px, 2dvh, 13px)/1.3 system-ui, sans-serif; box-shadow: var(--shadow); }
+#fx .fx-boost { background: #ff9a1f; } #fx .fx-shield { background: #2f8cf0; } #fx .fx-frozen { background: #62c6e8; }
+@media (max-width: 560px) { #fx { translate: 0 0; left: calc(var(--safe-l) + var(--pad)); top: calc(var(--safe-t) + var(--pad) + var(--row-h) * 2 + 52px); } }
+#stage:has(#ov[style*="flex"]) #fx { visibility: hidden; }
+
+/* the country slider: each chip carries the country's own flag; the chosen one is gold and a touch bigger; the ends fade out */
+#countryList { gap: 10px; padding: 6px 28px 10px; scroll-snap-type: x proximity; scroll-padding: 0 28px;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 34px, #000 calc(100% - 34px), transparent 100%); mask-image: linear-gradient(90deg, transparent 0, #000 34px, #000 calc(100% - 34px), transparent 100%); }
+.picker-item { display: inline-flex; align-items: center; gap: 8px; height: clamp(34px, 5.6dvh, 42px); padding: 0 16px 0 8px; scroll-snap-align: center; transition: transform .18s ease, background .18s ease, box-shadow .18s ease; }
+.picker-item .flag { flex: none; width: 24px; height: 24px; border-radius: 50%; background: rgba(255, 255, 255, .35) center / cover no-repeat; box-shadow: 0 0 0 2px rgba(255, 255, 255, .8), 0 1px 3px rgba(10, 30, 90, .35); }
+.picker-item .flag.globe { background: none; box-shadow: none; color: currentColor; padding: 1px; }
+.picker-item .nm { font-size: .95em; letter-spacing: .01em; }
+.picker-item.on { transform: scale(1.07); }
+.picker-item.conquered:not(.on) .flag { box-shadow: 0 0 0 2px #4fcf8a, 0 1px 3px rgba(10, 30, 90, .35); }
+.picker-item.conquered::after { content: "✓"; font-size: .8em; opacity: .9; }
+@media (prefers-reduced-motion: reduce) { .picker-item { transition: none; } .picker-item.on { transform: none; } }
+
+/* ---------- things that follow the 3D scene: name tags and the pointers to off-screen beacons ---------- */
+.tag-layer, .pointer-layer { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.name-tag { position: absolute; left: 0; top: 0; color: #fff; white-space: nowrap; paint-order: stroke fill; text-transform: lowercase; will-change: transform; }
+.beacon-pointer { position: absolute; left: 0; top: 0; width: 30px; height: 30px; border-radius: 50%; background: #9b6bff; border: 2px solid #fff; box-shadow: 0 0 0 7px rgba(183, 240, 106, .25); will-change: transform; }
+.beacon-pointer i { position: absolute; inset: 0; }
+.beacon-pointer i::after { content: ''; position: absolute; left: 50%; top: 50%; width: 0; height: 0; margin: -7px 0 0 -4px; border-style: solid; border-width: 7px 0 7px 12px; border-color: transparent transparent transparent #fff; }
+
+.replay-tag { position: absolute; right: calc(var(--pad) + env(safe-area-inset-right, 0px)); top: calc(var(--safe-t) + var(--pad)); z-index: 6; display: flex; align-items: center; gap: 6px; padding: 5px 12px 5px 9px; border-radius: 999px; background: rgba(20, 20, 30, .66); color: #fff; font: 800 clamp(12px, 2.2dvh, 14px)/1 system-ui, sans-serif; letter-spacing: .04em; pointer-events: none; opacity: 0; transition: opacity .2s; }
+.replay-tag.on { opacity: 1; }
+/* a replay shows only the scene and the replay mark: every other icon, panel and label is hidden */
+#stage.replaying > :not(canvas):not(.replay-tag) { visibility: hidden !important; }
+
+/* ---------- start panel layout: globe left + charCol right (portrait: globe top, charCol below) ---------- */
+#mid {
+  flex: 1 1 auto; min-height: 0; width: min(98vw, 1180px);
+  display: flex; flex-flow: row nowrap; align-items: center; justify-content: center;
+  gap: clamp(10px, 3vw, 40px);
+}
+#mid #picker { flex: 1 1 auto; width: auto; min-width: 0; align-self: stretch; }
+
+/* charCol: vertical stack — character ▸ name ▸ trail dots ▸ play button */
+#charCol {
+  flex: none; display: flex; flex-direction: column; align-items: center;
+  gap: clamp(8px, 1.6dvh, 16px);   /* uniform gap between every row in the column */
+}
+
+/* character picker row — needs extra bottom margin so the absolutely-placed charName doesn't overlap trail dots */
+#mid #charPick    { flex: none; margin-bottom: 18px; }
+#mid #charStage   { --char: clamp(96px, 20dvh, 170px); }
+#mid #charPick .round { width: 40px; height: 40px; }
+#mid #charName    { font-size: 14px; bottom: -20px; }
+
+/* trail + note: no extra margin needed — charCol gap already provides spacing */
+#charCol #trailPick  { margin-top: 0; }
+#charCol 
+/* play button wrapper: a touch more breathing room above it */
+#charCol #actions {
+  flex: none; width: auto; margin-top: clamp(4px, 1dvh, 10px);
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ---- portrait / narrow (≤760px wide OR portrait orientation) ---- */
+@media (max-width: 760px), (orientation: portrait) {
+  #mid         { flex-direction: column; gap: clamp(8px, 2dvh, 18px); }
+  #mid #picker { align-self: stretch; width: 100%; flex: 1 1 auto; }
+  #charCol     { gap: clamp(6px, 1.2dvh, 12px); }
+  #mid #charPick { margin-bottom: 14px; }
+  #mid #charStage   { --char: clamp(74px, 13dvh, 116px); }
+  #mid #charPick .round { width: 34px; height: 34px; }
+  #mid #charName    { font-size: 12px; bottom: -15px; }
+}
+
+/* ---- very short screens (landscape phone, ≤560px tall) ---- */
+@media (max-height: 560px) {
+  #charCol      { gap: 6px; }
+  #mid #charPick { margin-bottom: 0; }
+  #mid #charName { display: none; }
+  #charCol #actions { margin-top: 2px; }
+}
+
+/* ---- ultra-compact landscape (≤470px tall) ---- */
+@media (max-height: 470px) {
+  #mid         { flex: 1 1 60%; height: calc(100dvh - 70px); flex-direction: row; }
+  #mid #picker { height: 100%; }
+  #mid #charStage { --char: 62px; }
+  #charCol     { gap: 4px; }
+  #charCol #actions { margin-top: 4px; }
+}
