@@ -47,7 +47,7 @@ test('eliminated bots come back after a short delay', () => {
 });
 
 test('after you die you respawn into the same world: score reset, bots and their land untouched', () => {
-  const G = game(35);
+  const G = game(36);
   G.startGame();
   const me = G.players[0];
   for (let i = 0; i < 40; i++) G.tick();                       // let bots build some land
@@ -73,7 +73,7 @@ test('after you die you respawn into the same world: score reset, bots and their
 test('passing a milestone with NO event handler registered still terminates (optional chaining must not skip the increment)', () => {
   const G = game(36);                                            // no handlers at all
   G.startGame();
-  for (let i = 0, n = 0; i < G.owner.length && n < 1500; i++) if (G.land[i] && !G.owner[i]) { G.owner[i] = 1; n++; }   // about 22% of the world: jumps past three milestones at once
+  for (let i = 0, n = 0; i < G.owner.length && n < 6000; i++) if (G.land[i] && !G.owner[i]) { G.owner[i] = 1; n++; }   // about 22% of the world: jumps past three milestones at once
   G.countsDirty = true;
   const t0 = performance.now();
   G.tick();
@@ -85,7 +85,7 @@ test('every milestone is reported exactly once, in order, however many are passe
   const seen = [];
   const G = game(37, { onMilestone: (i) => seen.push(i) });
   G.startGame();
-  for (let i = 0, n = 0; i < G.owner.length && n < 1800; i++) if (G.land[i] && !G.owner[i]) { G.owner[i] = 1; n++; }
+  for (let i = 0, n = 0; i < G.owner.length && n < 7200; i++) if (G.land[i] && !G.owner[i]) { G.owner[i] = 1; n++; }
   G.countsDirty = true;
   G.tick(); G.tick(); G.tick();
   assert.deepEqual(seen, [...seen].sort((a, b) => a - b));

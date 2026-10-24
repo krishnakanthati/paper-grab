@@ -639,3 +639,6 @@ kbd[aria-label] { display: inline-flex; align-items: center; justify-content: ce
   #charCol     { gap: 4px; }
   #charCol #actions { margin-top: 4px; }
 }
+
+/* fullscreen: the top row sits flush against the top edge of the screen */
+:fullscreen #bar, :fullscreen #progress { top: var(--safe-t); }

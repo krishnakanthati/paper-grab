@@ -67,8 +67,8 @@ export const COAST_FILL = { nearCoast: 2.6, fillDepth: 1.4 };
  */
 export const BEACON = {
   firstAfterTicks: 30 * 9,     // the first beacon appears this long after a round starts
-  everyTicks: 30 * 20,         // then one more roughly this often (while fewer than `max` are out)
-  max: 2,                      // at most this many beacons at once
+  everyTicks: 30 * 10,         // then one more roughly this often (while fewer than `max` are out)
+  max: 4,                      // at most this many beacons at once
   lifetimeTicks: 30 * 45,      // a beacon nobody reaches fades away after this long
   radius: 5.5,                 // the circle it covers, in cells
   collectRadius: 1.0,          // how close a head must come to the orb to take it
@@ -86,10 +86,10 @@ export const BEACON = {
  */
 export const POWERUP = {
   kinds: ['boost', 'shield', 'freeze', 'magnet'] as const,
-  firstAfterTicks: 30 * 5,     // the first one appears this long after a round starts
-  everyTicks: 30 * 7,          // then one more roughly this often (while fewer than `max` are out)
-  max: 3,
-  lifetimeTicks: 30 * 22,      // one nobody takes fades away after this long
+  firstAfterTicks: 30 * 2,     // the first one appears this long after a round starts
+  everyTicks: 30 * 2,          // then one more roughly this often (while fewer than `max` are out)
+  max: 12,                     // a big world: plenty to find
+  lifetimeTicks: 30 * 45,      // one nobody takes fades away after this long
   collectRadius: 1.1,
   clearance: 2.2,              // spawns at least this far from the coast
   tries: 60,

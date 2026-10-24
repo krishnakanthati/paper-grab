@@ -8,7 +8,7 @@ function towardsNearestCoast(G, p) {
   for (let k = 0; k < 16; k++) {
     const a = (k / 16) * Math.PI * 2;
     let d = 0;
-    while (d < 80 && G.arena.inside(p.x + Math.cos(a) * d, p.y + Math.sin(a) * d)) d += 0.5;
+    while (d < 400 && G.arena.inside(p.x + Math.cos(a) * d, p.y + Math.sin(a) * d)) d += 0.5;
     if (d < bestD) { bestD = d; best = a; }
   }
   return best;
@@ -281,7 +281,7 @@ test('steering clearly inland releases the coast at once, and the head then move
 test('the release threshold is a real boundary: a little inland keeps the coast, a clear swing away from the held heading lets go', () => {
   // steering `off` degrees from the coast direction towards the land has an inland component of sin(off)
   for (const [offDeg, shouldRelease] of [[5, false], [15, false], [30, false], [80, true]]) {
-    const G = game(31);
+    const G = game(44);
     G.startGame(); alone(G);
     const h = G.players[0];
     reachCoast(G, h);

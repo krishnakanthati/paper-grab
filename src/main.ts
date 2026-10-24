@@ -27,7 +27,6 @@ import { createOverlay } from './ui/overlay.ts';
 import { createPicker } from './ui/picker/index.ts';
 import { bindPullRefresh } from './ui/pullRefresh.ts';
 import { bindPauseButton } from './ui/pauseButton.ts';
-import { bindSoundButton } from './ui/soundButton.ts';
 import { showFirstRoundHint } from './ui/hint.ts';
 import { bindTiltButton } from './ui/tiltButton.ts';
 
@@ -50,7 +49,6 @@ async function main() {
 
   const sound = createSound();
   bindAudio(on => sound.setYouTubeEnabled(on));
-  bindSoundButton($('snd'), sound);
   const characters = createCharacters3D(() => { try { shell.renderer.compile(shell.scene, shell.camera); } catch { /* compiling early is only an optimisation */ } });
 
   let session: Session | null = null;
@@ -120,7 +118,6 @@ async function main() {
     onGesture: () => sound.unlock(),
     activate: () => overlay.activate(),
     togglePause,
-    toggleMute: () => { sound.unlock(); sound.toggleMute(); },
     flip: () => {                                          // Space or a double tap, while playing: a somersault with a chime
       const me = session?.game.players[0];
       if (!session || !me?.alive || !session.game.running || overlay.visible() || userPaused || performance.now() - lastFlip < FLIP.cooldownMs) return;

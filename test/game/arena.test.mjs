@@ -9,7 +9,7 @@ const at = (G, x, y) => (x >= 0 && y >= 0 && x < NX && y < NY ? G.land[y * NX + 
 
 test('the arena is the world: one connected landmass of a sensible size', () => {
   const G = game();
-  assert.ok(G.landCount > 5000 && G.landCount < 9000, 'land cells ' + G.landCount);
+  assert.ok(G.landCount > 20000 && G.landCount < 32000, 'land cells ' + G.landCount);
   const seen = new Uint8Array(NX * NY), st = [G.land.indexOf(1)]; seen[st[0]] = 1; let n = 0;
   while (st.length) {
     const c = st.pop(); n++;

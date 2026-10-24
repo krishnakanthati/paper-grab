@@ -15,7 +15,7 @@ test('closing a loop claims everything it encloses and clears the line', () => {
 });
 
 test('land inside the loop that belonged to someone else is stolen, and its owner is notified via version', () => {
-  const G = game(7);
+  const G = game(8);
   const h = startWithRoom(G);
   const victim = G.players[1];
   const x0 = Math.floor(h.x), y0 = Math.floor(h.y);

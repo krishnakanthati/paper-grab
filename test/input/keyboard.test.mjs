@@ -10,7 +10,7 @@ const targets = [], calls = [];
 const game = { running: true, setTarget: (a) => targets.push(a) };
 const kb = bindKeyboard(game, {
   onGesture: () => calls.push('gesture'), activate: () => calls.push('activate'),
-  togglePause: () => calls.push('pause'), toggleMute: () => calls.push('mute'),
+  togglePause: () => calls.push('pause'), 
 });
 const down = (code, extra = {}) => { const e = { code, key: '', repeat: false, preventDefault() { e.prevented = true; }, ...extra }; handlers.keydown.forEach(h => h(e)); return e; };
 const up = (code, extra = {}) => handlers.keyup.forEach(h => h({ code, key: '', ...extra }));
@@ -86,10 +86,10 @@ test('steering keys never scroll the page', () => {
   up('ArrowUp');
 });
 
-test('Enter / Space activate, P / Escape pause, M mutes; holding does not repeat them', () => {
+test('Enter / Space activate, P / Escape pause (M does nothing); holding does not repeat them', () => {
   reset();
   down('Enter'); down('Space'); down('KeyP'); down('Escape'); down('KeyM');
-  assert.deepEqual(calls.filter(c => c !== 'gesture'), ['activate', 'activate', 'pause', 'pause', 'mute']);
+  assert.deepEqual(calls.filter(c => c !== 'gesture'), ['activate', 'activate', 'pause', 'pause']);
   reset();
   down('Enter', { repeat: true }); down('KeyP', { repeat: true }); down('KeyM', { repeat: true });
   assert.deepEqual(calls.filter(c => c !== 'gesture'), []);

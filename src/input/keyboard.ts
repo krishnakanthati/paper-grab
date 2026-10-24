@@ -16,18 +16,17 @@ const BY_CODE: Record<string, Dir> = {
 const BY_KEY: Record<string, Dir> = {
   arrowup: [0, -1], arrowdown: [0, 1], arrowleft: [-1, 0], arrowright: [1, 0],
 };
-const ACTION_BY_CODE: Record<string, 'activate' | 'pause' | 'mute'> = {
-  Enter: 'activate', NumpadEnter: 'activate', Space: 'activate', KeyP: 'pause', Escape: 'pause', KeyM: 'mute',
+const ACTION_BY_CODE: Record<string, 'activate' | 'pause'> = {
+  Enter: 'activate', NumpadEnter: 'activate', Space: 'activate', KeyP: 'pause', Escape: 'pause',
 };
-const ACTION_BY_KEY: Record<string, 'activate' | 'pause' | 'mute'> = {
-  enter: 'activate', ' ': 'activate', p: 'pause', escape: 'pause', m: 'mute',
+const ACTION_BY_KEY: Record<string, 'activate' | 'pause'> = {
+  enter: 'activate', ' ': 'activate', p: 'pause', escape: 'pause',
 };
 
 export interface KeyActions {
   onGesture(): void;      // any key: lets audio start
   activate(): void;       // Enter / Space
   togglePause(): void;    // P / Escape
-  toggleMute(): void;     // M
   flip?(): void;          // Space: the flip trick (as well as starting a round)
 }
 
@@ -54,7 +53,7 @@ export function bindKeyboard(gameRef: GameRef, a: KeyActions) {
     } else if (act) {
       e.preventDefault();
       if (e.repeat) return;
-      if (act === 'activate') { a.activate(); if (e.code === 'Space' || e.key === ' ') a.flip?.(); } else if (act === 'pause') a.togglePause(); else a.toggleMute();
+      if (act === 'activate') { a.activate(); if (e.code === 'Space' || e.key === ' ') a.flip?.(); } else a.togglePause();
     }
   });
   window.addEventListener('keyup', e => { if (held.delete(idOf(e))) steer(); });

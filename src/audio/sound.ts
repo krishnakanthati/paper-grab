@@ -9,7 +9,7 @@ export interface Sound {
   toggleMute(): boolean;                  // returns true when sound is now audible
   audible(): boolean;
   setPaused(p: boolean): void;
-  onAudibleChange(cb: (audible: boolean) => void): void;           // the mute button listens, so its icon never lies
+  onAudibleChange(cb: (audible: boolean) => void): void;          
   start(): void;
   capture(claimed: number): void;
   cut(): void;

@@ -10,14 +10,14 @@ landmasses are joined by short wide land bridges so every player can reach every
 import base64, json, os, sys, urllib.request
 from collections import deque
 
-NX, NY = 220, 82                      # 360/220 = 1.636 degrees per cell; 82 rows = lat 82N .. -52S
+NX, NY = 440, 164                     # 2x the old 220x82: a 4x bigger world, same cell size, same lat 82N..-52S
 LAT_TOP = 82.0
 STEP = 360.0 / NX
 URL = 'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_land.geojson'
 CACHE = '/tmp/ne_110m_land.geojson'
-HOLE_FILL = 250                       # enclosed water smaller than this (in cells) becomes land
-BRIDGE_MAX = 14                       # join landmasses closer than this many cells
-MIN_ISLAND = 40                       # drop landmasses smaller than this unless bridged
+HOLE_FILL = 1000                       # enclosed water smaller than this (in cells) becomes land
+BRIDGE_MAX = 28                       # join landmasses closer than this many cells
+MIN_ISLAND = 160                       # drop landmasses smaller than this unless bridged
 MARGIN = 3                            # ocean left around the whole map, so no land ever touches the map border
 MIN_WIDTH_R = 2                       # land and water channels narrower than ~2*R+1 = 5 cells are removed: no necks a head can't fit through
 

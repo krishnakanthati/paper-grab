@@ -44,6 +44,7 @@ export function stepPlayer(g: Ctx, p: Player) {
     else if (!wantsInland) p.stuckIntent = p.target;
   }
   if (p.stuck || !g.arena.inside(nx, ny)) {              // the coast never stops you: you keep moving at full speed along it
+    const hitHeading = p.angle;                          // before the slide below rewrites it
     const len = Math.hypot(nx - p.px, ny - p.py) * EDGE_SPEED_MULT;   // twice as fast along the coast
     const [ix, iy] = g.arena.inward(p.px, p.py);         // unit vector into the land
     const tx = -iy, ty = ix;                             // along the coast
@@ -72,7 +73,7 @@ export function stepPlayer(g: Ctx, p: Player) {
       }
     }
     if (!moved) { nx = p.px + ix * len * 0.5; ny = p.py + iy * len * 0.5; p.angle = Math.atan2(iy, ix); }
-    if (!p.stuck) p.stuckIntent = p.target;
+    if (!p.stuck) p.stuckIntent = hitHeading;            // the heading we actually hit the coast with, not the target: a head still mid-turn after being released would otherwise record its inland target as the held heading and never be able to leave again
     p.blocked = true; p.stuck = true;
   } else if (p.slideLock > 0) p.slideLock--;
 
