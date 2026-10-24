@@ -82,23 +82,22 @@ test('captives are three quarters of normal size and never overlap, on any scree
   }
 });
 
-test('when a captor is captured, its chain moves into the new captor\'s chain with the same characters (not rebuilt)', () => {
+test('when a captor is captured, its whole chain becomes angels first, then joins the new captor\'s chain', () => {
   const G = game(5); G.startGame();
   const rig = createRig(G, undefined);
-  const a = G.players[0], b = G.players[1];
-  a.captives = [3];
+  const a = G.players[0], b = G.players[1], c3 = G.players[2];
+  a.captives = [3]; c3.alive = false; c3.capturedBy = 1;
   const V = (t) => ({ f: 0.5, dtMs: 16, nowMs: 100000 + t * 16, scale: 30 });
   for (let t = 0; t < 30; t++) rig.update(V(t));
-  const held = rig.chains.get(1).followers[0].c;
-  a.alive = false; b.captives = [3, 1];                          // b captured a: a's chain, then a itself
-  for (let t = 30; t < 70; t++) rig.update(V(t));
-  assert.equal(rig.chains.get(2).followers.length, 1, 'a is still playing its angel death: only its old chain has moved over so far');
-  assert.ok(rig.chains.get(2).followers[0].c === held, 'the same character carried over');
-  for (let t = 70; t < 70 + Math.ceil(DEATH.ms / 16) + 30; t++) rig.update(V(t));
-  const chain = rig.chains.get(2);
-  assert.equal(chain.followers.length, 2, 'and a joins once its death is over');
-  assert.ok(chain.followers.find(f => f.victim === 3).c === held, 'the same character carried over');
+  assert.equal(rig.chains.get(1).followers.length, 1);
+  a.alive = false; b.captives = [3, 1]; c3.capturedBy = 2; a.capturedBy = 2;      // b captured a: a's chain, then a itself
+  rig.update(V(30));
+  assert.ok(rig.dying().valueOf() >= 2, 'the captor and every captive of its chain are playing their angel death');
   assert.equal(rig.chains.has(1), false, 'the dead captor has no chain of its own');
+  assert.equal(rig.chains.get(2).followers.length, 0, 'nobody joins the new chain while still an angel');
+  for (let t = 31; t < 31 + Math.ceil(DEATH.ms / 16) + 30; t++) rig.update(V(t));
+  assert.equal(rig.dying(), 0, 'the angels are gone');
+  assert.equal(rig.chains.get(2).followers.length, 2, 'and then both join the new captor\'s chain');
   rig.dispose();
 });
 

@@ -21,7 +21,7 @@ export interface View {
 }
 
 /** `speciesOf` says which animal each player is; without it the characters are plain coloured blocks. */
-interface Follower { victim: number; c: Character3D; st: PoseState; since: number; fromX: number; fromY: number; lastX: number; lastY: number; leaveAt: number }
+interface Follower { victim: number; c: Character3D; st: PoseState; since: number; fromX: number; fromY: number; lastX: number; lastY: number; heading: number; leaveAt: number }
 interface Chain { trail: Trail; followers: Follower[] }
 const easeOutCubic = (t: number) => 1 - Math.pow(1 - Math.min(1, Math.max(0, t)), 3);
 
@@ -43,7 +43,7 @@ export function createRig(game: Game, speciesOf?: (id: number) => Species | unde
   const chars = new Map<number, { c: Character3D; st: PoseState; wasAlive: boolean }>();
   const flipping = new Map<number, { start: number; kind: FlipKind }>();       // a character in the middle of its flip trick: when it started (ms) and which kind
   const deathDelay = new Map<number, number>();                  // a victim of a thrown knife stands still until the knife lands: ms to wait before its death starts
-  const dying = new Map<number, { t0: number; heading: number }>();     // characters in the middle of their death animation
+  const dying = new Map<number, { t0: number; heading: number; at?: readonly [number, number]; size?: number }>();     // characters in the middle of their death animation
   let chainsHeld = false;                                     // a replay rewinds the players but not who captured whom: the captives are hidden for its length rather than shown in the wrong places
   const arms = new Map<number, { dx: number; dz: number; wind: number; rel: number }>();       // who is throwing a star right now: the direction (world) and how far along the throw is
   const chains = new Map<number, Chain>();                    // each captor's path and the captives following it
@@ -61,15 +61,12 @@ export function createRig(game: Game, speciesOf?: (id: number) => Species | unde
 
   const chainOf = (id: number): Chain => { let c = chains.get(id); if (!c) { c = { trail: new Trail(CHAIN.historyStep), followers: [] }; chains.set(id, c); } return c; };
   const freeFollower = (f: Follower) => { scene.remove(f.c.ground); f.c.dispose(); };
-  /** Take `victim`'s follower out of whichever other chain holds it (it is being merged into `into`'s chain). */
-  const adopt = (victim: number, into: number): Follower | null => {
-    for (const [leaderId, other] of chains) {
-      if (leaderId === into) continue;
-      const i = other.followers.findIndex(f => f.victim === victim);
-      if (i >= 0) return other.followers.splice(i, 1)[0];
-    }
-    return null;
+  /** A captive whose chain was taken becomes an angel right where it stood (like any other player that is caught); it joins its new captor's chain only once that is over. */
+  const angelize = (f: Follower, v: View) => {
+    dying.set(f.victim, { t0: v.nowMs, heading: f.heading, at: [f.lastX, f.lastY], size: followerPx(v) / charPx(v) });
+    freeFollower(f);
   };
+  const takenBySomeoneElse = (victim: number, captor: number) => { const by = game.players[victim - 1]?.capturedBy ?? 0; return by !== 0 && by !== captor; };
 
   /** Captives follow their captor along the exact path it walked, a little smaller, rippling like a conga line. */
   function updateChain(p: (typeof game.players)[number], lead: { x: number; y: number; speed: number; phase: number; scale: number }, v: View) {
@@ -79,15 +76,20 @@ export function createRig(game: Game, speciesOf?: (id: number) => Species | unde
     for (const vid of p.captives) {
       if (chain.followers.some(f => f.victim === vid && f.leaveAt < 0)) continue;
       const vp = game.players[vid - 1], ve = chars.get(vid);
-      if (dying.has(vid) || (ve && ve.wasAlive && vp && !vp.alive)) continue;          // it is still playing its angel death: it joins the chain only once that is over, never drawn in two places at once
-      const taken = adopt(vid, p.id);                                       // a chain that was just merged into this one keeps its own characters
-      if (taken) { taken.fromX = taken.lastX; taken.fromY = taken.lastY; taken.since = v.nowMs; taken.leaveAt = -1; chain.followers.push(taken); continue; }
+      if (dying.has(vid) || (ve && ve.wasAlive && vp && !vp.alive)) continue;
+      let heldElsewhere = false;                                            // still standing in its old captor's chain: that chain turns it into an angel first, then it can join this one
+      for (const [other, och] of chains) if (other !== p.id && och.followers.some(f => f.victim === vid)) heldElsewhere = true;
+      if (heldElsewhere) continue;          // it is still playing its angel death: it joins the chain only once that is over, never drawn in two places at once
       const dead = game.players[vid - 1];
       const c = createCharacter(colorOf(vid), speciesOf?.(vid));
       scene.add(c.ground);
-      chain.followers.push({ victim: vid, c, st: newPoseState(vid), since: v.nowMs, fromX: dead?.x ?? lead.x, fromY: dead?.y ?? lead.y, lastX: dead?.x ?? lead.x, lastY: dead?.y ?? lead.y, leaveAt: -1 });
+      chain.followers.push({ victim: vid, c, st: newPoseState(vid), since: v.nowMs, fromX: dead?.x ?? lead.x, fromY: dead?.y ?? lead.y, lastX: dead?.x ?? lead.x, lastY: dead?.y ?? lead.y, heading: 0, leaveAt: -1 });
     }
-    for (const f of chain.followers) if (f.leaveAt < 0 && !p.captives.includes(f.victim)) f.leaveAt = v.nowMs;
+    for (let k = chain.followers.length - 1; k >= 0; k--) {
+      const f = chain.followers[k];
+      if (f.leaveAt >= 0 || p.captives.includes(f.victim)) continue;
+      if (takenBySomeoneElse(f.victim, p.id)) { chain.followers.splice(k, 1); angelize(f, v); } else f.leaveAt = v.nowMs;     // taken by another captor: angel; just freed: shrinks away
+    }
     chain.trail.trim(captiveDistance(p.captives.length) + CHAIN.historyMargin);
 
     let slot = 0;
@@ -108,7 +110,8 @@ export function createRig(game: Game, speciesOf?: (id: number) => Species | unde
       c.ground.visible = true;
       stand(c.ground, x, y, followerPx(v) * grow, v.scale);
       c.tilt.rotation.x = 0;
-      c.facing.rotation.z = -(j < 1 ? Math.atan2(target.y - f.fromY, target.x - f.fromX) : target.angle);
+      f.heading = j < 1 ? Math.atan2(target.y - f.fromY, target.x - f.fromX) : target.angle;
+      c.facing.rotation.z = -f.heading;
       const phase = lead.phase - slot * CHAIN.phaseLag, bounce = Math.abs(Math.sin(phase));
       c.facing.position.z = bounce * C.bobHeight * CHAIN.bob * lead.speed;
       const squash = 1 + (0.5 - bounce) * C.squashAmount * lead.speed;
@@ -150,7 +153,7 @@ export function createRig(game: Game, speciesOf?: (id: number) => Species | unde
           if (dp.done) { dying.delete(p.id); c.ground.visible = false; c.setAngel(0, 0); continue; }
           c.setArm(null); c.setAngel(dp.angel, v.nowMs / 1000);
           c.ground.visible = true;
-          stand(c.ground, p.x + dp.dx, p.y + dp.dy, charPx(v) * dp.scale, v.scale);
+          stand(c.ground, (d.at?.[0] ?? p.x) + dp.dx, (d.at?.[1] ?? p.y) + dp.dy, charPx(v) * (d.size ?? 1) * dp.scale, v.scale);
           c.tilt.rotation.x = 0;
           c.facing.rotation.set(dp.roll, 0, -d.heading + dp.yaw, 'ZXY');
           c.facing.position.z = dp.lift;
@@ -199,7 +202,7 @@ export function createRig(game: Game, speciesOf?: (id: number) => Species | unde
         if (p.id === leader) c.crown.position.z = C.crownLift + Math.sin(v.nowMs / 300) * 0.04;
       }
       // a dead captor's chain is dropped only after everyone has been posed, so a captor that just took over its captives can adopt them first
-      for (const [id, ch] of chains) if (!game.players[id - 1]?.alive) { for (const f of ch.followers) freeFollower(f); chains.delete(id); }
+      for (const [id, ch] of chains) if (!game.players[id - 1]?.alive) { for (const f of ch.followers) { if (f.leaveAt < 0 && takenBySomeoneElse(f.victim, id)) angelize(f, v); else freeFollower(f); } chains.delete(id); }
     },
     /** Build every player's character now (not on first sight), so the renderer can compile its shaders before play starts. */
     /** Make this player do its flip trick now (a hop with a somersault). */
