@@ -66,7 +66,7 @@ export function createTerritory3D(game: Game) {
   const swap = (m: Mesh, g: BufferGeometry) => { m.geometry.dispose(); m.geometry = g; };
 
   // ---- the colour-in fades ----
-  interface Ghost { mesh: Mesh; mat: ShaderMaterial; age: number; cx: number; cy: number; reach: number }
+  interface Ghost { mesh: Mesh; rim: Mesh; mat: ShaderMaterial; age: number; cx: number; cy: number; reach: number }
   const ghosts: Ghost[] = [];
   const queue: Array<{ cells: number[]; color: number; cx: number; cy: number; startAge?: number }> = [];       // waiting to be built, one per frame, so a big grab never costs a long frame
   let primed = false;                                                    // the very first draw builds everyone at once; later frames are budgeted
@@ -76,11 +76,31 @@ export function createTerritory3D(game: Game) {
     if (!loops.length) return;
     const mat = ghostMaterial(color), mesh = new Mesh(flatGeometry(groupShapes(loops), SLAB.height + 0.012), mat);
     mesh.renderOrder = 3; mesh.frustumCulled = false;
+    // the land's dark outline is centred on its edge, so its outer half sticks out past the covered fill as a thin line: cover that too, or the not-yet-coloured land shows a hairline of outline
+    const pos: number[] = [], index: number[] = [], owner = game.owner[cells[0]], half = SLAB.outlineWidth * 1.2, y = SLAB.height + 0.012;
+    const inGhost = (x: number, z: number) => set.has(Math.floor(z) * NX + Math.floor(x));
+    for (const l of loops) {
+      const n = l.pts.length / 2;
+      for (let i = 0; i < n; i++) {
+        const j = (i + 1) % n, ax = l.pts[2 * i], az = l.pts[2 * i + 1], bx = l.pts[2 * j], bz = l.pts[2 * j + 1];
+        const dx = bx - ax, dz = bz - az, len = Math.hypot(dx, dz);
+        if (len < 1e-6) continue;
+        const nx = -dz / len, nz = dx / len, mx = (ax + bx) / 2, mz = (az + bz) / 2;
+        const outX = inGhost(mx + nx * 0.3, mz + nz * 0.3) ? mx - nx * 0.3 : mx + nx * 0.3, outZ = inGhost(mx + nx * 0.3, mz + nz * 0.3) ? mz - nz * 0.3 : mz + nz * 0.3;
+        const ox = Math.floor(outX), oz = Math.floor(outZ);
+        if (ox >= 0 && oz >= 0 && ox < NX && oz < NY && game.owner[oz * NX + ox] === owner) continue;       // the join with the owner's own earlier land has no outline to hide
+        const b0 = pos.length / 3;
+        pos.push(ax + nx * half, y, az + nz * half, ax - nx * half, y, az - nz * half, bx + nx * half, y, bz + nz * half, bx - nx * half, y, bz - nz * half);
+        index.push(b0, b0 + 1, b0 + 2, b0 + 1, b0 + 3, b0 + 2);
+      }
+    }
+    const rg = new BG(); rg.setAttribute('position', new BufferAttribute(new Float32Array(pos), 3)); rg.setIndex(index);
+    const rim = new Mesh(rg, mat); rim.renderOrder = 3; rim.frustumCulled = false; group.add(rim);
     let reach = 0;                                                       // far enough that the circle ends up covering every claimed cell
     for (const c of cells) reach = Math.max(reach, Math.hypot((c % NX) + 0.5 - cx, ((c / NX) | 0) + 0.5 - cy));
     mat.uniforms.uCenter.value = [cx, cy];
     group.add(mesh);
-    ghosts.push({ mesh, mat, age: startAge, cx, cy, reach: reach + 1.5 });
+    ghosts.push({ mesh, rim, mat, age: startAge, cx, cy, reach: reach + 1.5 });
   };
 
   function rebuild(id: number) {
@@ -132,7 +152,7 @@ export function createTerritory3D(game: Game) {
       if (next) addGhost(next.cells, next.color, next.cx, next.cy, next.startAge);
       for (let i = ghosts.length - 1; i >= 0; i--) {
         const k = ghosts[i], t = (k.age += dtMs) / EFFECTS.revealMs;
-        if (t >= 1) { group.remove(k.mesh); k.mesh.geometry.dispose(); k.mat.dispose(); ghosts.splice(i, 1); continue; }
+        if (t >= 1) { group.remove(k.mesh, k.rim); k.mesh.geometry.dispose(); k.rim.geometry.dispose(); k.mat.dispose(); ghosts.splice(i, 1); continue; }
         k.mat.uniforms.uRadius.value = k.reach * easeOutCubic(Math.min(1, t / EFFECTS.revealSpread));
         k.mat.uniforms.uAlpha.value = 1 - easeInOut(t);
       }
@@ -146,7 +166,7 @@ export function createTerritory3D(game: Game) {
     },
     dispose() {
       for (const p of parts) for (const m of [p.top, p.wall, p.outline, p.shadow]) { m.geometry.dispose(); (m.material as MeshBasicMaterial).dispose(); }
-      for (const g of ghosts) { g.mesh.geometry.dispose(); g.mat.dispose(); }
+      for (const g of ghosts) { g.mesh.geometry.dispose(); g.rim.geometry.dispose(); g.mat.dispose(); }
       for (const t of tiles.values()) t?.dispose();
     },
   };

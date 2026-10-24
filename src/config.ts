@@ -58,7 +58,7 @@ export const captiveDistance = (slot: number) => CAPTIVE.firstOffset + (slot + 1
  * pale slivers between your land and the sea. When a line runs close to the coast (within `nearCoast` cells), the land beside
  * it that is within `fillDepth` cells of the water is claimed with the loop.
  */
-export const COAST_FILL = { nearCoast: 2.6, fillDepth: 1.4 };
+export const COAST_FILL = { nearCoast: 1.7, fillDepth: 1.0 };
 
 /**
  * Power-up beacons: a glowing circle with an orb in the middle appears now and then. Whoever reaches the orb first claims every bit of
