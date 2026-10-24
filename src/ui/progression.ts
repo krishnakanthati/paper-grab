@@ -45,15 +45,15 @@ export function createProgression(o: { stats: () => ConqueredStats; characterNam
   return {
     points: total,
     /** A flip in the air is worth one point. */
-    flipPoint() { this.award(() => profile.addFlipPoint(), 'flip  ·  +1 point'); },
+    flipPoint() { this.award(() => profile.addFlipPoint(), 'flip', true); },
     render,
     /** Run `earn` (which adds points), then announce anything it unlocked. */
-    award(earn: () => void, what: string) {
+    award(earn: () => void, what: string, quiet = false) {
       const before = total();
       earn();
       const after = total();
       const unlocked = newUnlocks(o.characterNames, before, after);
-      showToast(unlocked.length ? `${what}  ·  unlocked: ${unlocked.join(', ')}` : what);
+      if (unlocked.length || !quiet) showToast(unlocked.length ? `${what}  ·  unlocked: ${unlocked.join(', ')}` : what);      // `quiet`: say nothing unless something unlocked (the flip's "+1" is floating text in the scene)
       render(); o.onPointsChanged?.();
     },
   };

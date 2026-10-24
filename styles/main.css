@@ -660,3 +660,11 @@ kbd[aria-label] { display: inline-flex; align-items: center; justify-content: ce
   #ov > #rules { position: absolute; top: calc(var(--safe-t) + var(--pad) + 4px); right: calc(var(--safe-r) + var(--pad)); margin: 0; align-items: flex-start; text-align: left; z-index: 2; }
   #mid #picker { padding-top: 40px; box-sizing: border-box; }                                  /* the rules no longer sit above it, so keep it clear of the title instead */
 }
+
+/* the flip's floating "+1": chunky 3D lettering, no box */
+.float-3d {
+  position: absolute; left: 0; top: 0; white-space: nowrap; will-change: transform, opacity; transform-origin: 50% 100%;
+  font: 900 clamp(22px, 4.2dvh, 34px)/1 ui-rounded, 'SF Pro Rounded', 'Baloo 2', 'Nunito', 'Trebuchet MS', 'Segoe UI', system-ui, sans-serif; letter-spacing: .03em; text-transform: uppercase;
+  color: #fff3a8;
+  text-shadow: 0 1px 0 #f2b705, 0 2px 0 #e0a400, 0 3px 0 #cc9300, 0 4px 0 #b88200, 0 5px 0 #a37100, 0 6px 0 #8f6200, 0 12px 16px rgba(0, 20, 80, .45), 0 0 18px rgba(255, 220, 80, .55);
+}

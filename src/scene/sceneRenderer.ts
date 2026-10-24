@@ -11,7 +11,7 @@ import { pxPerCell } from '../render/quality.ts';
 import type { Characters3D } from '../render3d/index.ts';
 import { createFloor3D } from './floor3d.ts';
 import { createBeacons3D, createPickups3D, PICKUP_LOOK } from './markers3d.ts';
-import { createBeaconPointers, createNameTags } from './overlays.ts';
+import { createBeaconPointers, createFloatText, createNameTags } from './overlays.ts';
 import { createParticles3D } from './particles3d.ts';
 import { createHistory, replayAlive, replaySpeed, SNAP_STRIDE } from './replay.ts';
 import type { Shell } from './shell.ts';
@@ -66,6 +66,7 @@ export function createSceneRenderer(shell: Shell, overlayHost: HTMLElement, game
     { set: (id, dx, dy, wind, rel) => characters.setArm(id, dx, dy, wind, rel), clear: id => characters.clearArm(id), hand: id => characters.handAt(id) },
   );
   const tags = createNameTags(game, overlayHost);
+  const floats = createFloatText(overlayHost);
   const pointers = createBeaconPointers(game, overlayHost);
   const camera = createCameraController({ x: game.NX / 2, y: game.NY / 2 });
   const effects = createEffects(game, particles, camera);
@@ -176,7 +177,7 @@ export function createSceneRenderer(shell: Shell, overlayHost: HTMLElement, game
       restore(); tag.remove();
       for (const t of timers) clearTimeout(t);
       shell.root.remove(floor.group, territory.group, trails.group, beacons.group, pickups.group, slash.gfx.mesh, characters.group, particles.group);
-      floor.dispose(); territory.dispose(); trails.dispose(); particles.dispose(); beacons.dispose(); pickups.dispose(); slash.gfx.dispose(); tags.dispose(); pointers.dispose();
+      floor.dispose(); territory.dispose(); trails.dispose(); particles.dispose(); beacons.dispose(); pickups.dispose(); slash.gfx.dispose(); tags.dispose(); floats.dispose(); pointers.dispose();
     },
     frame(f, dtMs, nowMs) {
       if (pending && !replay && nowMs >= pending.startAt) { pending = null; begin(nowMs); }
@@ -226,6 +227,7 @@ export function createSceneRenderer(shell: Shell, overlayHost: HTMLElement, game
       pickups.update(nowMs, f);
       beacons.update(nowMs);
       tags.update(f, shell);
+      floats.update(dtMs, f, shell);
       pointers.update(nowMs, shell);
       shell.render();
     },
@@ -278,6 +280,7 @@ export function createSceneRenderer(shell: Shell, overlayHost: HTMLElement, game
     winFx: effects.win,
     flipFx(p) {
       const col = colorOf(p.id);
+      floats.pop('flip +1', p);
       particles.sparkle(p.x, p.y, 0xfff35c, 6, 3.5, 0.5); particles.sparkle(p.x, p.y, 0x5cf5ff, 4, 4.5, 0.4);
       particles.burst(p.x, p.y, col, 8, 5, 0.34); particles.ring(p.x, p.y, 0xffffff, 1.6, 520);
       const t = window.setTimeout(() => {                                                                  // where it lands, a moment later
