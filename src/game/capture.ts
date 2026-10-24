@@ -51,6 +51,12 @@ function giveBackGrazed(g: Ctx, p: Player, walked: number[], before: Map<number,
       if (nx >= 0 && ny >= 0 && nx < g.NX && ny < g.NY && g.owner[ny * g.NX + nx] === p.id && !before.has(ny * g.NX + nx)) ours = true;
     }
     if (ours) continue;
+    let links = 0;                                       // a cell with two of our cells at its sides joins them: handing it back would cut a thin strip into separate beads
+    if (x > 0 && g.owner[i - 1] === p.id) links++;
+    if (x < g.NX - 1 && g.owner[i + 1] === p.id) links++;
+    if (y > 0 && g.owner[i - g.NX] === p.id) links++;
+    if (y < g.NY - 1 && g.owner[i + g.NX] === p.id) links++;
+    if (links >= 2) continue;
     g.owner[i] = prev; back.add(i);
     if (prev) bump(g, prev);
   }
