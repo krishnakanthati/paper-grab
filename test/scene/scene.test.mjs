@@ -4,7 +4,7 @@ import { PerspectiveCamera } from 'three';
 import { EFFECTS } from '../../src/config.ts';
 import { createCameraController, pose3D } from '../../src/render/cameraController.ts';
 import { createFloor3D } from '../../src/scene/floor3d.ts';
-import { createBeacons3D, createPickups3D, BEACON_LOOK, pointerFor } from '../../src/scene/markers3d.ts';
+import { createShield3D } from '../../src/scene/shield3d.ts';
 import { createNameTags } from '../../src/scene/overlays.ts';
 import { createParticles3D } from '../../src/scene/particles3d.ts';
 import { createCameraView } from '../../src/scene/shell.ts';
@@ -241,7 +241,7 @@ test('particles fly out along the ground, rise and fall back under gravity, neve
 
 test('per-frame cost stays tiny: trails + particles + markers for a full game take well under 3 ms on the CPU', () => {
   const { G } = busyGame();
-  const trails = createTrail3D(G), particles = createParticles3D(), beacons = createBeacons3D(G), pickups = createPickups3D(G);
+  const trails = createTrail3D(G), particles = createParticles3D(), shields = createShield3D(G);
   particles.burst(40, 40, 0xff0000, 60, 5, 0.4);
   const frames = 1500;
   const t0 = performance.now();
@@ -249,7 +249,7 @@ test('per-frame cost stays tiny: trails + particles + markers for a full game ta
     const f = (i % 3) / 3;
     if (i % 3 === 0) G.tick();                           // a logic tick every third frame, like 30 Hz logic on a 90 Hz display
     if (!G.players[0].alive) G.startGame();
-    trails.update(f); particles.update(16); beacons.update(i * 16); pickups.update(i * 16, f);
+    trails.update(f); particles.update(16); shields.update(i * 16, f);
     if (i % 400 === 0) particles.burst(40, 40, 0x00ff00, 40, 5, 0.4);
   }
   const avg = (performance.now() - t0) / frames;
@@ -375,54 +375,19 @@ test('thrown and swooping planes share the cap, and a throw of zero length does 
   assert.equal(l2.count(), 0);
 });
 
-// ---- beacons and power-ups ----
-test('a beacon pointer sits on the screen edge towards a beacon that is out of sight, and not at all when it is on screen', () => {
-  const W = 400, H = 800, inset = BEACON_LOOK.pointer.inset;
-  assert.equal(pointerFor(200, 400, W, H, inset), null, 'in the middle: no pointer');
-  assert.equal(pointerFor(inset + 1, inset + 1, W, H, inset), null, 'just inside: no pointer');
-  const right = pointerFor(1200, 400, W, H, inset);
-  assert.ok(Math.abs(right.x - (W - inset)) < 1e-6 && Math.abs(right.y - 400) < 1e-6 && Math.abs(right.angle) < 1e-6, 'off to the right: on the right edge, pointing right');
-  const up = pointerFor(200, -900, W, H, inset);
-  assert.ok(Math.abs(up.y - inset) < 1e-6 && Math.abs(up.angle + Math.PI / 2) < 1e-6, 'off the top: on the top edge, pointing up');
-  for (let k = 0; k < 400; k++) {
-    const sx = (Math.random() - 0.5) * 5000 + 200, sy = (Math.random() - 0.5) * 5000 + 400, p = pointerFor(sx, sy, W, H, inset);
-    if (!p) continue;
-    assert.ok(p.x >= inset - 1e-6 && p.x <= W - inset + 1e-6 && p.y >= inset - 1e-6 && p.y <= H - inset + 1e-6, 'always inside the inset rectangle');
-    assert.ok(Math.abs(Math.atan2(sy - 400, sx - 200) - p.angle) < 1e-9, 'and pointing at the beacon');
-  }
-});
-test('beacons draw a ground circle and a floating orb, and are forgotten once gone', () => {
+// ---- the safe-zone shield ----
+test('a player with the shield up gets a bubble on the ground, and nothing is drawn without one', () => {
   const { G } = busyGame();
-  G.beacons.length = 0;                                  // (the busy game has spawned some of its own)
-  const layer = createBeacons3D(G);
-  layer.update(1000);
-  assert.equal(layer.group.children[0].geometry.drawRange.count, 0, 'no beacons: nothing drawn');
-  G.beacons.push({ id: 1, x: 10, y: 10, born: G.tickCount });
-  layer.update(1000);
-  assert.ok(layer.group.children[0].geometry.drawRange.count > 30, 'the circle is drawn on the ground');
-  assert.ok(layer.group.children.length > 1 && layer.group.children[1].children.length >= 6, 'with an orb and its sparkles');
-  const orbY = layer.group.children[1].children[2].position.y;
-  assert.ok(orbY > 0.5, 'the orb floats above the ground: ' + orbY);
-  G.beacons.length = 0;
-  layer.update(1200);
-  assert.equal(layer.group.children[0].geometry.drawRange.count, 0);
-  assert.equal(layer.group.children.length, 1, 'its orb is removed');
-});
-test('power-up orbs float and bob, and a player with an effect running gets an aura on the ground', () => {
-  const { G } = busyGame();
-  G.pickups.length = 0;
-  const layer = createPickups3D(G);
+  for (const p of G.players) p.shield = 0;
+  const layer = createShield3D(G);
   layer.update(1000, 0.5);
-  G.pickups.push({ id: 7, kind: 'boost', x: 20, y: 20, born: G.tickCount });
-  layer.update(1000, 0.5);
-  const orb = layer.group.children[1];
-  assert.ok(orb && orb.children.length === 5, 'halo, glow, body, ring and icon');
-  const y0 = orb.children[2].position.y; layer.update(1500, 0.5);
-  assert.notEqual(orb.children[2].position.y, y0, 'it bobs');
-  G.pickups.length = 0;
+  assert.equal(layer.group.children[0].geometry.drawRange.count, 0, 'no shield: nothing drawn');
   const p = G.players[0]; p.alive = true; p.shield = 100;
-  layer.update(2000, 0.5);
-  assert.ok(layer.group.children[0].geometry.drawRange.count > 30, 'a shield aura is drawn');
+  layer.update(1100, 0.5);
+  assert.ok(layer.group.children[0].geometry.drawRange.count > 30, 'a shield bubble is drawn');
+  p.shield = 0;
+  layer.update(1200, 0.5);
+  assert.equal(layer.group.children[0].geometry.drawRange.count, 0, 'and goes when it drops');
 });
 
 test('thrown plane: it winds up before letting go, lands exactly on the victim, and can be replayed with a fixed flight time', () => {

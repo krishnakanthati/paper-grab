@@ -61,43 +61,12 @@ export const captiveDistance = (slot: number) => CAPTIVE.firstOffset + (slot + 1
 export const COAST_FILL = { nearCoast: 1.7, fillDepth: 1.0 };
 
 /**
- * Power-up beacons: a glowing circle with an orb in the middle appears now and then. Whoever reaches the orb first claims every bit of
- * land inside the circle, and every other player whose head is inside it when that happens is captured into the collector's chain.
- * Reach it first and the players inside join YOUR chain; lose the race and, if you were inside, you join theirs.
+ * Your safe-zone shield: press it (E, or the shield button) and for a few seconds nobody can catch, cut or crash into you, so you can
+ * ride out a rival that is close to your open line. It then needs time to recharge. Computer players do not use it.
  */
-export const BEACON = {
-  firstAfterTicks: 30 * 9,     // the first beacon appears this long after a round starts
-  everyTicks: 30 * 10,         // then one more roughly this often (while fewer than `max` are out)
-  max: 4,                      // at most this many beacons at once
-  lifetimeTicks: 30 * 45,      // a beacon nobody reaches fades away after this long
-  radius: 5.5,                 // the circle it covers, in cells
-  collectRadius: 1.0,          // how close a head must come to the orb to take it
-  clearance: 3.2,              // spawns at least this far from the coast, so it is reachable and not wedged against the edge
-  tries: 60,                   // random spots tried per spawn
-  botRange: 18,                // a computer player this close to a beacon may go for it...
-  botChance: 0.55,             // ...with this chance each time it thinks (so not every bot rushes it)
-};
-
-/**
- * Power-up pickups: small floating orbs that appear now and then. Whoever's head reaches one gets its effect for a few seconds:
- * boost (faster), shield (cannot be caught or cut by anyone), freeze (every other player close by is stopped for a moment) or
- * magnet (all unclaimed land close by becomes yours at once).
- * Computer players go for them too.
- */
-export const POWERUP = {
-  kinds: ['boost', 'shield', 'freeze', 'magnet'] as const,
-  firstAfterTicks: 30 * 2,     // the first one appears this long after a round starts
-  everyTicks: 30 * 2,          // then one more roughly this often (while fewer than `max` are out)
-  max: 12,                     // a big world: plenty to find
-  lifetimeTicks: 30 * 45,      // one nobody takes fades away after this long
-  collectRadius: 1.1,
-  clearance: 2.2,              // spawns at least this far from the coast
-  tries: 60,
-  botRange: 14, botChance: 0.5,
-  boostTicks: 30 * 5, boostMult: 1.6,
-  shieldTicks: 30 * 6,
-  freezeTicks: 30 * 3, freezeRadius: 12,
-  magnetRadius: 6,             // magnet: every bit of land nobody owns within this many cells of the taker becomes theirs at once
+export const SHIELD = {
+  ticks: 30 * 4,               // how long it holds
+  cooldownTicks: 30 * 18,      // from the moment it is switched on until it can be used again
 };
 
 /** Captured players who follow their captor in a chain: at most this many at once (the oldest is let go beyond it). */

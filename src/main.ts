@@ -113,10 +113,17 @@ async function main() {
   bindPause(() => { ytPaused = true; syncPause(); }, () => { ytPaused = false; syncPause(); });
   document.addEventListener('visibilitychange', () => { hidden = document.hidden; syncPause(); });
 
+  /** Switch the safe-zone shield on (E, or the shield button), only while a round is actually being played. */
+  function useShield() {
+    if (!session || overlay.visible() || userPaused || ytPaused || hidden) return;
+    if (session.game.useShield()) session.refreshUi();
+  }
+  $('shield').addEventListener('click', e => { e.stopPropagation(); (e.currentTarget as HTMLElement).blur(); useShield(); });
   const input = bindInput(() => session!.game, {
     onGesture: () => sound.unlock(),
     activate: () => overlay.activate(),
     togglePause,
+    shield: useShield,
     flip: () => {                                          // Space or a double tap, while playing: a somersault with a chime
       const me = session?.game.players[0];
       if (!session || !me?.alive || !session.game.running || overlay.visible() || userPaused || performance.now() - lastFlip < FLIP.cooldownMs) return;

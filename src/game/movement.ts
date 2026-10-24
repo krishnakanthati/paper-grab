@@ -1,5 +1,5 @@
 // One tick of motion for one player: steer, move, glide along the rim, and report cells entered.
-import { EDGE_RELEASE, EDGE_SPEED_MULT, POWERUP, SPEED, TICK_HZ, TURN_RATE } from '../config.ts';
+import { EDGE_RELEASE, EDGE_SPEED_MULT, SPEED, TICK_HZ, TURN_RATE } from '../config.ts';
 import { HEAD_DEPTH } from './arena.ts';
 import { idx } from './arena.ts';
 import { thinkBot } from './bots.ts';
@@ -20,7 +20,6 @@ export const wrapAngle = (a: number) => {
 export function stepPlayer(g: Ctx, p: Player) {
   if (!p.alive) return;
   const dt = 1 / TICK_HZ;
-  if (p.frozen > 0) { p.pa = p.angle; p.px = p.x; p.py = p.y; return; }       // frozen: stands still (its line and land stay as they are)
   if (p.isBot) thinkBot(g, p);
 
   p.pa = p.angle;
@@ -29,7 +28,7 @@ export function stepPlayer(g: Ctx, p: Player) {
 
   const lastDx = p.x - p.px, lastDy = p.y - p.py;        // how we actually moved last tick (used to keep sliding the same way)
   p.px = p.x; p.py = p.y;
-  const speed = p.boost > 0 ? SPEED * POWERUP.boostMult : SPEED;
+  const speed = SPEED;
   let nx = p.x + Math.cos(p.angle) * speed * dt, ny = p.y + Math.sin(p.angle) * speed * dt;
   p.blocked = false;
   // Once on the coast you STAY on it (following it round every bend) until you deliberately steer inland: the heading

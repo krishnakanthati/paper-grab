@@ -116,28 +116,13 @@ export function createSfx(synth: Synth) {
       synth.note(bus, 260, t, 0.16, 'triangle', 0.09, 80);
       synth.note(bus, pitch(72), t + 0.05, 0.25, 'triangle', 0.13);
     },
-    /** A beacon appears: a soft, rising three-note sparkle. */
-    beaconSpawn(pan = 0, vol = 1) {
+    /** Your safe-zone shield comes on: a soft rising shimmer that settles into a calm, bright hum. */
+    shield() {
       if (!ready()) return;
-      const t = now(), bus = synth.panned(pan, vol);
-      [72, 76, 81].forEach((m, i) => synth.note(bus, pitch(m), t + i * 0.09, 0.4, 'sine', 0.09));
-      synth.note(bus, pitch(93), t + 0.22, 0.35, 'sine', 0.03);
-    },
-    /** A beacon is taken: a warm swell under a bright chord. `mine` = you took it (fuller), otherwise it is heard from where it happened. */
-    beacon(pan = 0, vol = 1, mine = true) {
-      if (!ready()) return;
-      const t = now(), bus = synth.panned(pan, vol * (mine ? 1 : 0.8));
-      synth.note(bus, 110, t, 0.55, 'sine', 0.2, 196);
-      [67, 71, 74, 79].forEach((m, i) => synth.note(bus, pitch(m), t + 0.05 + i * 0.045, 0.6, 'triangle', mine ? 0.13 : 0.1));
-      synth.note(bus, pitch(91), t + 0.2, 0.5, 'sine', 0.04);
-    },
-    /** A power-up is taken: a short, soft chime whose shape tells the kind (rising = boost, steady pair = shield, falling shimmer = freeze). */
-    powerup(kind: 'boost' | 'shield' | 'freeze' | 'magnet' = 'boost', pan = 0, vol = 1) {
-      if (!ready()) return;
-      const t = now(), bus = synth.panned(pan, vol);
-      const notes = kind === 'boost' ? [67, 72, 76] : kind === 'shield' ? [72, 79] : kind === 'magnet' ? [60, 67, 72] : [84, 79, 76];
-      notes.forEach((m, i) => synth.note(bus, pitch(m), t + i * 0.07, 0.35, 'sine', 0.1));
-      if (kind === 'boost') synth.note(bus, 220, t, 0.25, 'triangle', 0.08, 440);
+      const t = now();
+      [67, 72, 76, 79].forEach((m, i) => synth.note(synth.sfx(), pitch(m), t + i * 0.06, 0.55, 'sine', 0.11, undefined, 0.03));
+      synth.note(synth.sfx(), pitch(55), t, 0.9, 'sine', 0.12, pitch(60), 0.1);
+      synth.note(synth.sfx(), pitch(91), t + 0.2, 0.6, 'sine', 0.035);
     },
     cut() {
       if (!ready()) return;

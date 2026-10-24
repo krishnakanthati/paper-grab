@@ -1,6 +1,6 @@
 // The ONE WebGL context for the whole game: the renderer, the scene, a perspective camera pitched down at the ground with no yaw or roll, the lights
 // and the sea behind everything. Layers add themselves to `scene`; the camera controller's pose is applied here each frame. Also converts between
-// the ground and the screen (for name tags, beacon pointers and steering). Created once for the page; arenas come and go inside it.
+// the ground and the screen (for name tags and steering). Created once for the page; arenas come and go inside it.
 import {
   AmbientLight, CanvasTexture, Color, DirectionalLight, Group, LinearFilter, PerspectiveCamera, Raycaster, Scene, SRGBColorSpace, Vector2, Vector3, WebGLRenderer,
 } from 'three';

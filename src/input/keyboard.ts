@@ -1,5 +1,5 @@
 // Keys. The arrow keys steer in 8 directions: hold two keys for a diagonal (the held directions are added together).
-// Enter / Space start or restart, P / Escape pause, M mutes.
+// Enter / Space start or restart, P / Escape pause, E switches the safe-zone shield on, M mutes.
 //
 // Keys are matched by their PHYSICAL position (event.code), so the arrows work on any layout, and Shift or
 // Caps Lock can never leave a key "stuck" (the key-up always matches the key-down). `event.key` is only a fallback
@@ -16,11 +16,11 @@ const BY_CODE: Record<string, Dir> = {
 const BY_KEY: Record<string, Dir> = {
   arrowup: [0, -1], arrowdown: [0, 1], arrowleft: [-1, 0], arrowright: [1, 0],
 };
-const ACTION_BY_CODE: Record<string, 'activate' | 'pause'> = {
-  Enter: 'activate', NumpadEnter: 'activate', Space: 'activate', KeyP: 'pause', Escape: 'pause',
+const ACTION_BY_CODE: Record<string, 'activate' | 'pause' | 'shield'> = {
+  Enter: 'activate', NumpadEnter: 'activate', Space: 'activate', KeyP: 'pause', Escape: 'pause', KeyE: 'shield',
 };
-const ACTION_BY_KEY: Record<string, 'activate' | 'pause'> = {
-  enter: 'activate', ' ': 'activate', p: 'pause', escape: 'pause',
+const ACTION_BY_KEY: Record<string, 'activate' | 'pause' | 'shield'> = {
+  enter: 'activate', ' ': 'activate', p: 'pause', escape: 'pause', e: 'shield',
 };
 
 export interface KeyActions {
@@ -28,6 +28,7 @@ export interface KeyActions {
   activate(): void;       // Enter / Space
   togglePause(): void;    // P / Escape
   flip?(): void;          // Space: the flip trick (as well as starting a round)
+  shield?(): void;        // E: switch the safe-zone shield on
 }
 
 type Ev = Pick<KeyboardEvent, 'code' | 'key' | 'repeat' | 'ctrlKey' | 'metaKey' | 'altKey' | 'preventDefault'>;
@@ -53,7 +54,7 @@ export function bindKeyboard(gameRef: GameRef, a: KeyActions) {
     } else if (act) {
       e.preventDefault();
       if (e.repeat) return;
-      if (act === 'activate') { a.activate(); if (e.code === 'Space' || e.key === ' ') a.flip?.(); } else a.togglePause();
+      if (act === 'activate') { a.activate(); if (e.code === 'Space' || e.key === ' ') a.flip?.(); } else if (act === 'shield') a.shield?.(); else a.togglePause();
     }
   });
   window.addEventListener('keyup', e => { if (held.delete(idOf(e))) steer(); });

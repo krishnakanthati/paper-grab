@@ -39,8 +39,7 @@ Pushing to `main` runs `.github/workflows/pages.yml`: typecheck, tests, build, d
   version of them (three quarters size) joins a chain following the exact path you walked. Capture someone who has a
   chain and their whole chain joins yours; the same goes the other way round. The chain holds at most `CAPTIVES_MAX`
   and is freed if you die.
-- **Beacons.** Every so often a glowing circle with an orb in the middle appears on the map (a pointer at the screen edge shows where). Reach the orb first and you claim every bit of land inside the circle, and every other player standing in it is captured into your chain. Lose the race while you are inside the circle and you are captured into the other player's chain. Computer players sometimes race for it too. A beacon nobody takes fades away after a while (`BEACON` in `config.ts`).
-- **Power-ups.** Small floating orbs appear now and then (`POWERUP` in `config.ts`): **boost** (1.6x speed for 5 s), **shield** (nobody can catch or cut you for 6 s) and **freeze** (everyone else within 12 cells stops for 3 s; shielded players are not frozen) and **magnet** (all free land within 6 cells becomes yours at once; other players' land and lines are left alone). Computer players go for them too. The ones you have running show as pills at the top. The minimap highlights only your opponents (and your own arrow): beacons and power-ups are not drawn on it.
+- **Safe-zone shield.** Press **E** (or the shield button in the top bar) and for 4 s nobody can catch, cut or crash into you, so you can ride out a rival close to your open line. It recharges for 18 s (`SHIELD` in `config.ts`).
 - **Winning.** Own the whole arena, or close a loop all the way round the edge: if you own at least `RIM_WIN.minShare` of
   the land and either only the thin strip by the coast is left, or every other player is inside your loop, the rest is
   yours too and you win. Only the human wins this way.
@@ -78,7 +77,7 @@ src/
                     smoothing), effects, palette, patterns, adaptive quality
   scene/            the ONE Three.js scene: shell (renderer, tilted camera, lights, screen<->ground), floor, territories (raised slabs
                     clipped to the coast by the stencil, with the colour-in fade), trail ribbons locked to the interpolated head,
-                    pooled point-sprite particles, beacons / power-ups / slash, name-tag and beacon-pointer overlays
+                    pooled point-sprite particles, the shield bubble / slash, name-tag and floating-text overlays
   render3d/         the 3D characters over the ground
     species.ts        the cast as data (colours, ears, snout, patches, details)
     decor.ts / decorTuning.ts   builds a character's parts from its species; every number lives in decorTuning

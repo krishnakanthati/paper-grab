@@ -2,8 +2,7 @@
 import { BOT_COUNT, CAPTIVE, captiveDistance, DEFAULT_RULES, WIN_SHARE, DIR_ANGLES, MAX_BOTS, MILESTONES, MIN_LAND_PER_BOT } from '../config.ts';
 import { WORLD_SHAPE } from '../data/worldMask.ts';
 import { buildArena, bump, recount } from './arena.ts';
-import { collectBeacons, resetBeacons, updateBeacons } from './beacons.ts';
-import { collectPowerups, resetPowerups, updatePowerups } from './powerups.ts';
+import { tickShields, useShield } from './shield.ts';
 import { chainContacts, kill, lineContacts, resolveHeads, separateHeads } from './combat.ts';
 import { stepPlayer, wrapAngle } from './movement.ts';
 import { newPlayer, spawn } from './spawn.ts';
@@ -23,11 +22,11 @@ export function createGame(random: () => number = Math.random, events: GameEvent
   const g: Ctx = {
     shape, NX, NY, botCount, land, arena,
     owner: new Uint8Array(NX * NY), trail: new Uint16Array(NX * NY), landCount,
-    players: [], beacons: [], nextBeaconAt: 0, beaconSeq: 0, pickups: [], nextPickupAt: 0, pickupSeq: 0, counts: new Array(botCount + 2).fill(0), ver: new Array(botCount + 2).fill(0),
+    players: [], counts: new Array(botCount + 2).fill(0), ver: new Array(botCount + 2).fill(0),
     running: false, tickCount: 0, bestCells: 0, rules,
     random, events, labelBuf: new Uint32Array(NX * NY), labelGen: 0, countsDirty: true, lastLeader: 0, milestone: 0,
     startGame: () => startGame(), respawnHuman: () => respawnHuman(), tick: () => tick(), setTarget: (a) => setTarget(a),
-    setDir: (d) => setTarget(DIR_ANGLES[d]), leaderId: () => leaderId(),
+    setDir: (d) => setTarget(DIR_ANGLES[d]), leaderId: () => leaderId(), useShield: () => useShield(g, g.players[0]),
   };
 
   function startGame() {
@@ -39,7 +38,6 @@ export function createGame(random: () => number = Math.random, events: GameEvent
       spawn(g, p);
     }
     g.bestCells = 0; g.tickCount = 0; g.lastLeader = 0; g.milestone = 0;
-    resetBeacons(g); resetPowerups(g);
     g.running = true;
     for (let id = 0; id < g.ver.length; id++) bump(g, id);
     recount(g);
@@ -67,8 +65,7 @@ export function createGame(random: () => number = Math.random, events: GameEvent
     resolveHeads(g);
     separateHeads(g);
     chainContacts(g);
-    updateBeacons(g); collectBeacons(g);
-    updatePowerups(g); collectPowerups(g);
+    tickShields(g);
     if (g.countsDirty) recount(g);
     for (const p of g.players) if (p.alive && g.counts[p.id] === 0) kill(g, p, null, 'you lost all your land');
     for (const p of g.players) if (p.isBot && !p.alive && !p.capturedBy && --p.respawnIn <= 0) spawn(g, p);

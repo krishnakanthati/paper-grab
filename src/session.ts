@@ -11,7 +11,7 @@ import type { FlipKind } from './render3d/pose.ts';
 import type { Characters3D } from './render3d/index.ts';
 import { speciesOfPlayer } from './ui/characters/store.ts';
 import { $ } from './ui/dom.ts';
-import { createPowerHud } from './ui/powerHud.ts';
+import { createShieldHud } from './ui/shieldHud.ts';
 import { createMinimap } from './ui/minimap.ts';
 import { createProgress } from './ui/progress.ts';
 
@@ -29,7 +29,7 @@ export interface Session {
 
 export interface SessionOptions {
   shell: Shell;                    // the page's one WebGL scene
-  overlayHost: HTMLElement;        // where name tags and beacon pointers go
+  overlayHost: HTMLElement;        // where name tags and floating text go
   sound: Sound;
   shape: ArenaShape;
   characters: Characters3D;
@@ -44,10 +44,7 @@ export function createSession(o: SessionOptions): Session {
     ...audio,
     onCapture: (p, claimed, takenFrom) => { renderer.captureFx(p, claimed, takenFrom); audio.onCapture(p, claimed); },
     onChainCut: (_from, by, ids) => { renderer.captureFx(by, []); audio.onCapture(by, ids); },      // the same ring and chime as a grab
-    onBeaconSpawn: b => { renderer.beaconSpawnFx(b); audio.onBeaconSpawn(b); },
-    onBeacon: (b, collector, victims, claimed) => { renderer.beaconFx(b, collector, victims); audio.onBeacon(b, collector, victims, claimed); },
-    onPickupSpawn: k => renderer.pickupSpawnFx(k),
-    onPickup: (k, collector, frozen, claimed) => { renderer.pickupFx(k, collector, frozen); audio.onPickup(k, collector, frozen, claimed); },
+    onShield: p => { renderer.shieldFx(p); audio.onShield(p); },
     onClear: (victim, cells) => renderer.clearFx(victim, cells),
     onKill: (victim, killer, reason) => { renderer.killFx(victim, killer); audio.onKill(victim, killer, reason); },
     onGameOver: () => { renderer.replayFx(); o.onDeath(); },
@@ -59,9 +56,9 @@ export function createSession(o: SessionOptions): Session {
   document.body.style.background = OCEAN_TOP;
 
   const progress = createProgress(game);
-  const powerHud = createPowerHud(game, $('fx'));
+  const shieldHud = createShieldHud(game, $('shield'));
   const minimap = createMinimap(game, $<HTMLCanvasElement>('mini'));
-  const refreshUi = () => { progress.update(); powerHud.update(); minimap.draw(); };
+  const refreshUi = () => { progress.update(); shieldHud.update(); minimap.draw(); };
   refreshUi();
 
   return {

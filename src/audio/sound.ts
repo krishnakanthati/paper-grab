@@ -27,15 +27,13 @@ export interface Sound {
   milestone(index: number): void;
   otherCapture(claimed: number, pan: number, vol: number): void;   // pan -1..1, vol 0..1 from distance
   otherKill(pan: number, vol: number): void;
-  beaconSpawn(pan: number, vol: number): void;
-  beacon(pan: number, vol: number, mine: boolean): void;
-  powerup(kind: 'boost' | 'shield' | 'freeze' | 'magnet', pan: number, vol: number): void;
+  shield(): void;                         // your safe-zone shield comes on
 }
 
 /** Minimum gap (seconds) between two plays of the same cue. */
 /** How often the warning chime repeats while you stay on someone else's land (seconds). */
 const WARNING_EVERY = 1.3;
-const COOLDOWN: Record<string, number> = { leaveHome: 0.12, enemyLand: 0.45, intruder: 0.35, landLost: 0.3, crown: 1, otherCapture: 0.08, otherKill: 0.08, beaconSpawn: 0.5, powerup: 0.15 };
+const COOLDOWN: Record<string, number> = { leaveHome: 0.12, enemyLand: 0.45, intruder: 0.35, landLost: 0.3, crown: 1, otherCapture: 0.08, otherKill: 0.08 };
 
 export function createSound(): Sound {
   const synth = createSynth();
@@ -80,6 +78,6 @@ export function createSound(): Sound {
     intruder: throttled('intruder', sfx.intruder), landLost: throttled('landLost', sfx.landLost),
     crown: throttled('crown', sfx.crown), milestone: sfx.milestone,
     otherCapture: throttled('otherCapture', sfx.otherCapture), otherKill: throttled('otherKill', sfx.otherKill),
-    beaconSpawn: throttled('beaconSpawn', sfx.beaconSpawn), beacon: sfx.beacon, powerup: throttled('powerup', sfx.powerup),
+    shield: sfx.shield,
   };
 }

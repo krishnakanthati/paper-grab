@@ -10,7 +10,7 @@ const targets = [], calls = [];
 const game = { running: true, setTarget: (a) => targets.push(a) };
 const kb = bindKeyboard(game, {
   onGesture: () => calls.push('gesture'), activate: () => calls.push('activate'),
-  togglePause: () => calls.push('pause'), 
+  togglePause: () => calls.push('pause'), shield: () => calls.push('shield'),
 });
 const down = (code, extra = {}) => { const e = { code, key: '', repeat: false, preventDefault() { e.prevented = true; }, ...extra }; handlers.keydown.forEach(h => h(e)); return e; };
 const up = (code, extra = {}) => handlers.keyup.forEach(h => h({ code, key: '', ...extra }));
@@ -109,4 +109,9 @@ test('every key press counts as a user gesture (so audio can start)', () => {
 
 test('the letter keys W A S D no longer steer (the arrows are the keys)', () => {
   for (const code of ['KeyW', 'KeyA', 'KeyS', 'KeyD']) { reset(); down(code); assert.equal(targets.length, 0, `${code} steered`); up(code); }
+});
+
+test('E switches the safe-zone shield on (once per press) and does not steer', () => {
+  reset(); down('KeyE'); assert.deepEqual(calls, ['gesture', 'shield']); assert.deepEqual(targets, []);
+  reset(); down('KeyE', { repeat: true }); assert.deepEqual(calls, ['gesture'], 'holding the key does not fire it again');
 });

@@ -1,6 +1,6 @@
 // An immediate-mode drawer for flat shapes lying on the ground (X = a cell's x, Z = a cell's y, Y up): polygons, lines, circles and
 // rings with their own colour and alpha, rebuilt every frame into ONE buffer geometry (one draw call, no allocation once it has grown
-// to size). It stands in for PixiJS's Graphics for the small, changing things: beacons, power-ups, auras, the paper-plane slash.
+// to size). It stands in for PixiJS's Graphics for the small, changing things: the shield bubble, particles, the paper-plane slash.
 import { BufferAttribute, BufferGeometry, DoubleSide, Mesh, MeshBasicMaterial, ShapeUtils, Vector2 } from 'three';
 
 const CIRCLE_SEGMENTS = 28;

@@ -1,7 +1,5 @@
 // Bot planning: leave home, run a leg, turn 90 degrees, run a second leg, then head back to close the loop.
-import { BEACON, BOT_AI, BOT_EDGE, CAPTIVE, POWERUP, SELF_GRACE } from '../config.ts';
-import { nearestBeacon } from './beacons.ts';
-import { nearestPickup } from './powerups.ts';
+import { BOT_AI, BOT_EDGE, CAPTIVE, SELF_GRACE } from '../config.ts';
 import { cellOf, idx } from './arena.ts';
 import { wrapAngle } from './movement.ts';
 import type { Ctx, Player } from './types.ts';
@@ -25,7 +23,7 @@ const exposed = (q: Player) => q.alive && !q.capturedBy && q.shield <= 0;
 export function lineThreatened(g: Ctx, p: Player): boolean {
   if (p.path.length < 6) return false;
   for (const q of g.players) {
-    if (q === p || !exposed(q) || q.frozen > 0) continue;
+    if (q === p || !exposed(q)) continue;
     const ax = q.x + Math.cos(q.angle) * BOT_AI.fleeLook, ay = q.y + Math.sin(q.angle) * BOT_AI.fleeLook;
     const now = nearestOnPath(p.path, q.x, q.y, 1), soon = nearestOnPath(p.path, ax, ay, 1);
     if ((now && now.d < BOT_AI.fleeRange) || (soon && soon.d < BOT_AI.fleeRange * 0.6)) return true;
@@ -122,14 +120,6 @@ export function thinkBot(g: Ctx, p: Player) {
       if (d < best) { best = d; bx = (i % g.NX) + 0.5; by = ((i / g.NX) | 0) + 0.5; }
     }
     want = Math.atan2(by - p.y, bx - p.x);
-  }
-  if (!p.returning && g.beacons.length) {                         // a beacon close by: sometimes race the others to it
-    const near = nearestBeacon(g, p.x, p.y);
-    if (near && near.dist < BEACON.botRange && rnd() < BEACON.botChance) want = Math.atan2(near.beacon.y - p.y, near.beacon.x - p.x);
-  }
-  if (!p.returning && g.pickups.length) {                         // a power-up close by: sometimes go and take it
-    const near = nearestPickup(g, p.x, p.y);
-    if (near && near.dist < POWERUP.botRange && rnd() < POWERUP.botChance) want = Math.atan2(near.pickup.y - p.y, near.pickup.x - p.x);
   }
   if (!p.returning && rnd() < BOT_AI.huntChance) {                // a rival's exposed line (or a trespasser): go and take it
     const prey = preyAim(g, p);

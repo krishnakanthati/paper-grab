@@ -29,7 +29,7 @@ test('every sound effect, as actually played, is low, round and soft', () => {
   sfx.start(); sfx.leaveHome(); sfx.enemyLand(); sfx.intruder(0, 1); sfx.landLost(); sfx.crown();
   for (let i = 0; i < 12; i++) sfx.milestone(i);
   for (const c of [1, 20, 200, 2000]) { sfx.capture(c); sfx.otherCapture(c, 0, 1); }
-  sfx.clash(); sfx.otherKill(0, 1); sfx.cut(); sfx.death(); sfx.win(); sfx.beaconSpawn(0, 1); sfx.beacon(0, 1, true); sfx.beacon(0.4, 0.5, false); sfx.powerup("boost", 0, 1); sfx.powerup("shield", 0, 1); sfx.powerup("freeze", 0.4, 0.5);
+  sfx.clash(); sfx.otherKill(0, 1); sfx.cut(); sfx.death(); sfx.win(); sfx.shield();
   assert.ok(played.length > 60, 'the cues play many notes');
   for (const n of played) {
     assert.ok(n.hz <= AUDIO.maxHz + 1e-9, `a note at ${n.hz.toFixed(0)} Hz is shrill`);

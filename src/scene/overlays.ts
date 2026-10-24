@@ -1,10 +1,9 @@
 // Small pieces of the interface that follow things in the scene, as plain DOM (crisp text at any zoom, nothing to rasterise per frame):
-// name tags that float above heads, and the pointers at the screen edge that show where an off-screen beacon is.
+// name tags that float above heads and text that pops up above them.
 import { NAME_TAG, nameOf } from '../config.ts';
 import type { Game } from '../game/index.ts';
 import { colorOf, css, darken } from '../render/palette.ts';
 import { CHARACTER as C } from '../render3d/tuning.ts';
-import { BEACON_LOOK, pointerFor } from './markers3d.ts';
 import type { Shell } from './shell.ts';
 
 /** Put an overlay layer right after the canvas, so the interface (progress bar, minimap, panels) draws above it. */
@@ -79,31 +78,3 @@ export function createFloatText(host: HTMLElement) {
     dispose() { box.remove(); },
   };
 }
-
-export function createBeaconPointers(game: Game, host: HTMLElement) {
-  const box = document.createElement('div');
-  box.className = 'pointer-layer'; box.setAttribute('aria-hidden', 'true');
-  mount(host, box);
-  const els = new Map<number, HTMLElement>();
-  const L = BEACON_LOOK.pointer;
-  return {
-    box,
-    update(nowMs: number, shell: Shell) {
-      const { w, h } = shell.size(), live = new Set<number>();
-      for (const b of game.beacons) {
-        live.add(b.id);
-        let el = els.get(b.id);
-        if (!el) { el = document.createElement('div'); el.className = 'beacon-pointer'; el.innerHTML = '<i></i>'; box.appendChild(el); els.set(b.id, el); }
-        const s = shell.project(b.x, 1, b.y), ptr = pointerFor(s.x, s.y, w, h, L.inset);
-        if (!ptr) { el.style.display = 'none'; continue; }
-        const pulse = 1 + 0.12 * Math.sin(nowMs / 1000 * Math.PI * 2 * L.pulseHz);
-        el.style.display = '';
-        el.style.transform = `translate(${ptr.x.toFixed(1)}px,${ptr.y.toFixed(1)}px) translate(-50%,-50%) scale(${pulse.toFixed(3)})`;
-        (el.firstElementChild as HTMLElement).style.transform = `rotate(${ptr.angle}rad)`;
-      }
-      for (const [id, el] of els) if (!live.has(id)) { el.remove(); els.delete(id); }
-    },
-    dispose() { box.remove(); },
-  };
-}
-export type BeaconPointers = ReturnType<typeof createBeaconPointers>;

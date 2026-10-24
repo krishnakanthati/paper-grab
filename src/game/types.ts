@@ -29,29 +29,17 @@ export interface Player {
   respawnIn: number;
   capturedBy: number;            // id of the player holding this one in its chain (0 = free). A captured player does not respawn until it is released
   // bot planning state
-  boost: number; shield: number; frozen: number;   // ticks left of each power-up effect (0 = off)
+  shield: number; shieldCool: number;   // ticks left of the safe-zone shield, and until it can be switched on again (0 = off / ready)
   returning: boolean; edgeRun: boolean; phase: number; leg: number; leg2: number; turnSign: number; thinkIn: number;
 }
 
-/** A power-up on the map: whoever reaches its orb first claims the circle round it and captures whoever is inside. */
-export interface Beacon { id: number; x: number; y: number; born: number }
 
-export type PowerKind = 'boost' | 'shield' | 'freeze' | 'magnet';
-/** A power-up orb on the map: whoever's head reaches it gets its effect for a few seconds. */
-export interface Pickup { id: number; kind: PowerKind; x: number; y: number; born: number }
 
 export interface GameEvents {
   /** `p` claimed these cells. `takenFrom` says which of them used to belong to whom (the rest were nobody's), so the renderer can blend old colour into new. */
   onCapture?(p: Player, claimed: number[], takenFrom?: Map<number, number[]>): void;
   onKill?(victim: Player, killer: Player | null, reason: string): void;
-  onBeaconSpawn?(beacon: Beacon): void;
-  onBeaconGone?(beacon: Beacon): void;
-  onPickupSpawn?(pickup: Pickup): void;
-  onPickupGone?(pickup: Pickup): void;
-  /** `collector` took `pickup`; `frozen` are the players a freeze stopped. */
-  onPickup?(pickup: Pickup, collector: Player, frozen: Player[], claimed: number[]): void;                                  // nobody reached it in time
-  /** `collector` reached `beacon`: `victims` (players inside the circle) were captured and `claimed` cells became the collector's. */
-  onBeacon?(beacon: Beacon, collector: Player, victims: Player[], claimed: number[]): void;
+  onShield?(p: Player): void;                            // a player switched their safe-zone shield on
   onChainCut?(from: Player, by: Player, ids: number[]): void;         // `by` touched `from`'s chain and took these captives (and all behind them)
   onClear?(victim: Player, cells: number[]): void;                     // a player died with no captor: this land went back to nobody
   onConvert?(victim: Player, captor: Player, cells: number[]): void;   // a captured player's land just became the captor's
@@ -98,8 +86,6 @@ export interface Game {
   trail: Uint16Array;            // bitmask: bit `id` is set when player `id`'s open line passes through the cell (lines may overlap)
   landCount: number;
   players: Player[];
-  beacons: Beacon[];
-  pickups: Pickup[];
   counts: number[];              // cells owned per player id
   ver: number[];                 // per-player territory version, bumped whenever that player's land changes
   running: boolean;
@@ -112,6 +98,7 @@ export interface Game {
   setTarget(angle: number): void;   // steer the human towards a heading (radians)
   setDir(d: number): void;          // 0 up, 1 right, 2 down, 3 left
   leaderId(): number;               // id of the player with the most land (wears the crown), 0 if none
+  useShield(): boolean;             // the human switches the safe-zone shield on, if it is ready
 }
 
 /** Internal state shared by the rules modules. */
@@ -123,8 +110,4 @@ export interface Ctx extends Game {
   countsDirty: boolean;
   lastLeader: number;
   milestone: number;             // how many milestones the human has passed this life
-  nextBeaconAt: number;          // tick when the next beacon may appear
-  beaconSeq: number;             // ids for beacons
-  nextPickupAt: number;          // tick when the next power-up may appear
-  pickupSeq: number;
 }

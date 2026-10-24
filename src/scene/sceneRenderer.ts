@@ -1,8 +1,8 @@
 // Composes the layers of one arena into the shell's single scene and draws a frame. This is the part the rest of the game talks to: it
 // follows the player with the camera controller, rebuilds what changed, interpolates everything between 30 Hz logic ticks, and turns game
 // events into effects. Each layer lives in its own module.
-import { BEACON, CAMERA, POWERUP, REPLAY } from '../config.ts';
-import type { Beacon, Game, Pickup, Player } from '../game/index.ts';
+import { CAMERA, REPLAY } from '../config.ts';
+import type { Game, Player } from '../game/index.ts';
 import { DEATH, deathPose } from '../render3d/death.ts';
 import { createCameraController } from '../render/cameraController.ts';
 import { createEffects } from '../render/effects.ts';
@@ -10,8 +10,8 @@ import { colorOf } from '../render/palette.ts';
 import { pxPerCell } from '../render/quality.ts';
 import type { Characters3D } from '../render3d/index.ts';
 import { createFloor3D } from './floor3d.ts';
-import { createBeacons3D, createPickups3D, PICKUP_LOOK } from './markers3d.ts';
-import { createBeaconPointers, createFloatText, createNameTags } from './overlays.ts';
+import { createShield3D } from './shield3d.ts';
+import { createFloatText, createNameTags } from './overlays.ts';
 import { createParticles3D } from './particles3d.ts';
 import { createHistory, replayAlive, replaySpeed, SNAP_STRIDE } from './replay.ts';
 import type { Shell } from './shell.ts';
@@ -28,12 +28,8 @@ export interface Renderer {
   captureFx(p: Player, claimed: number[], takenFrom?: Map<number, number[]>): void;
   /** A player died with no captor: their land dissolves from where they fell instead of vanishing. */
   clearFx(victim: Player, cells: number[]): void;
-  /** A beacon appeared / was reached: a pop of rings and confetti. */
-  beaconSpawnFx(b: Beacon): void;
-  beaconFx(b: Beacon, collector: Player, victims: Player[]): void;
-  /** A power-up appeared / was taken: a small pop. */
-  pickupSpawnFx(k: Pickup): void;
-  pickupFx(k: Pickup, collector: Player, frozen: Player[]): void;
+  /** A player switched their safe-zone shield on: a ring and a burst of sparkles. */
+  shieldFx(p: Player): void;
   /** `killer` is who took them out (null for an accident): a plane slash plays when there is one. */
   killFx(victim: Player, killer?: Player | null): void;
   /** The human was just taken out: after a beat, replay the hit in slow motion (only if somebody did it). */
@@ -58,8 +54,7 @@ export function createSceneRenderer(shell: Shell, overlayHost: HTMLElement, game
   const territory = createTerritory3D(game);
   const trails = createTrail3D(game);
   const particles = createParticles3D();
-  const beacons = createBeacons3D(game);
-  const pickups = createPickups3D(game);
+  const shields = createShield3D(game);
   const slash = createSlash3D(
     (x, y, scale) => { particles.burst(x, y, 0xffffff, Math.round(9 * scale), 5.5, 0.22); particles.burst(x, y, 0xd9e6f5, Math.round(6 * scale), 3, 0.3); particles.ring(x, y, 0xffffff, 1.5 * scale, 380); },
     (x, y, scale) => { particles.burst(x, y, 0xffffff, Math.round(5 * scale), 3, 0.18); },      // a puff off the thrower's hand
@@ -67,12 +62,11 @@ export function createSceneRenderer(shell: Shell, overlayHost: HTMLElement, game
   );
   const tags = createNameTags(game, overlayHost);
   const floats = createFloatText(overlayHost);
-  const pointers = createBeaconPointers(game, overlayHost);
   const camera = createCameraController({ x: game.NX / 2, y: game.NY / 2 });
   const effects = createEffects(game, particles, camera);
   territory.prewarm();
 
-  shell.root.add(floor.group, territory.group, trails.group, beacons.group, pickups.group, slash.gfx.mesh, characters.group, particles.group);
+  shell.root.add(floor.group, territory.group, trails.group, shields.group, slash.gfx.mesh, characters.group, particles.group);
   const timers = new Set<number>();
 
   /** The dust, dizzy stars and final puff of a death, timed to the pose animation (`slow` = 1 in real time; a slowed replay stretches the delays). */
@@ -176,8 +170,8 @@ export function createSceneRenderer(shell: Shell, overlayHost: HTMLElement, game
     destroy() {
       restore(); tag.remove();
       for (const t of timers) clearTimeout(t);
-      shell.root.remove(floor.group, territory.group, trails.group, beacons.group, pickups.group, slash.gfx.mesh, characters.group, particles.group);
-      floor.dispose(); territory.dispose(); trails.dispose(); particles.dispose(); beacons.dispose(); pickups.dispose(); slash.gfx.dispose(); tags.dispose(); floats.dispose(); pointers.dispose();
+      shell.root.remove(floor.group, territory.group, trails.group, shields.group, slash.gfx.mesh, characters.group, particles.group);
+      floor.dispose(); territory.dispose(); trails.dispose(); particles.dispose(); shields.dispose(); slash.gfx.dispose(); tags.dispose(); floats.dispose();
     },
     frame(f, dtMs, nowMs) {
       if (pending && !replay && nowMs >= pending.startAt) { pending = null; begin(nowMs); }
@@ -224,11 +218,9 @@ export function createSceneRenderer(shell: Shell, overlayHost: HTMLElement, game
       effects.dust(sdt);
       particles.update(sdt);
       slash.update(sdt, camera.scale);
-      pickups.update(nowMs, f);
-      beacons.update(nowMs);
+      shields.update(nowMs, f);
       tags.update(f, shell);
       floats.update(dtMs, f, shell);
-      pointers.update(nowMs, shell);
       shell.render();
     },
     captureFx: (p, claimed, takenFrom) => { effects.capture(p, claimed); territory.reveal(claimed, takenFrom, p.x, p.y, lastPath[p.id]); },
@@ -260,21 +252,11 @@ export function createSceneRenderer(shell: Shell, overlayHost: HTMLElement, game
     replayFx() { if (fatal && !replay) pending = { startAt: performance.now() + REPLAY.startDelayMs }; },
     replayMs: () => (fatal ? REPLAY.startDelayMs + REPLAY.ms + REPLAY.afterMs : 0),
     animating: () => pending !== null || replay !== null,
-    beaconSpawnFx(b) { particles.ring(b.x, b.y, 0xb7f06a, BEACON.radius, 900); particles.burst(b.x, b.y, 0xe6d8ff, 14, 3.2, 0.3); },
-    beaconFx(b, collector, victims) {
-      particles.ring(b.x, b.y, 0xffffff, BEACON.radius * 1.15, 650);
-      particles.ring(b.x, b.y, 0x9b6bff, BEACON.radius, 900);
-      for (let id = 1; id <= 6; id++) particles.burst(b.x, b.y, colorOf(id), 8, 7.5, 0.4);
-      for (const v of victims) particles.burst(v.x, v.y, 0xe6d8ff, 12, 4, 0.34);
-      if (collector.id === 1 || victims.some(v => v.id === 1)) camera.kick(0.45);
-    },
-    pickupSpawnFx(k) { particles.ring(k.x, k.y, PICKUP_LOOK.colors[k.kind], 2.2, 600); },
-    pickupFx(k, collector, frozen) {
-      const col = PICKUP_LOOK.colors[k.kind];
-      particles.ring(k.x, k.y, 0xffffff, 1.8, 450); particles.burst(k.x, k.y, col, 12, 5, 0.3);
-      if (k.kind === 'magnet') particles.ring(collector.x, collector.y, col, POWERUP.magnetRadius, 700);
-      if (k.kind === 'freeze') { particles.ring(collector.x, collector.y, col, POWERUP.freezeRadius, 700); for (const v of frozen) particles.burst(v.x, v.y, col, 8, 3, 0.3); }
-      if (collector.id === 1) camera.kick(0.2);
+    shieldFx(p) {
+      floats.pop('shield on', p);
+      particles.ring(p.x, p.y, 0x3aa0ff, 2.4, 700); particles.ring(p.x, p.y, 0xffffff, 1.5, 450);
+      particles.sparkle(p.x, p.y, 0x9bd9ff, 8, 4, 0.45);
+      if (p.id === 1) camera.kick(0.15);
     },
     clearFx: (victim, cells) => territory.reveal(cells, new Map([[victim.id, cells]]), victim.x, victim.y),
     winFx: effects.win,

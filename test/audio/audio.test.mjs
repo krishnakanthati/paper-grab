@@ -171,6 +171,12 @@ test('leaving your land, stepping onto someone else\'s colour, and an enemy step
   calls.length = 0; h.onEnterEnemyLand(third, 4); assert.deepEqual(calls, [], 'two other players\' land is not your business');
 });
 
+test('only your own shield has a cue', () => {
+  const { h, calls, me, third } = setup(14);
+  h.onShield(me); assert.deepEqual(calls, [['shield']]);
+  calls.length = 0; h.onShield(third); assert.deepEqual(calls, []);
+});
+
 test('losing land, taking the crown and passing a milestone each have a cue; only YOUR losses and YOUR crown', () => {
   const { h, calls, me, third } = setup(13);
   h.onLandLost(me, third, 12); assert.deepEqual(calls, [['landLost']]);
