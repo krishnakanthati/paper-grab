@@ -96,7 +96,7 @@ export function createSceneRenderer(shell: Shell, overlayHost: HTMLElement, game
   let replay: { g: number; r: number; clock: number; hitT: number; killer: number; far: boolean; next: number; stars: number; members: Array<[number, number]>; landG: number; fx: boolean; route: { pts: number[]; cum: number[] } | null; saved: Array<{ x: number; y: number; px: number; py: number; angle: number; pa: number; alive: boolean; path: number[] }>; buf: Float32Array } | null = null;
   const tag = document.createElement('div');
   tag.className = 'replay-tag';
-  tag.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.6-5.9" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M4.2 3.6v4.8h4.8" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>replay';
+  tag.textContent = 'replay';
   overlayHost.appendChild(tag);
   const restore = () => {
     if (!replay) return;
