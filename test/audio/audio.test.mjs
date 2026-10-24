@@ -179,3 +179,20 @@ test('losing land, taking the crown and passing a milestone each have a cue; onl
   calls.length = 0; h.onLeader(3); assert.deepEqual(calls, []);
   h.onMilestone(2); assert.deepEqual(calls, [['milestone', 2]]);
 });
+
+test('the warning chime repeats while you stay on someone else\'s land, and stops when you leave it', () => {
+  const s = createSound();
+  s.unlock();
+  clock += 10;
+  let before = log.osc;
+  s.warning(true);
+  assert.ok(log.osc > before, 'it sounds straight away when nothing else has just played');
+  before = log.osc;
+  clock += 0.5; s.warning(true);
+  assert.equal(log.osc, before, 'not again straight after');
+  clock += 1; s.warning(true);
+  assert.ok(log.osc > before, 'it sounds again once the gap is over, for as long as you stay');
+  before = log.osc;
+  clock += 5; s.warning(false);
+  assert.equal(log.osc, before, 'silent once you are off it');
+});

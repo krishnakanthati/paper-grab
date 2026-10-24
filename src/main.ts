@@ -147,7 +147,11 @@ async function main() {
     game: () => session!.game,
     renderer: () => session!.renderer,
     isPaused: () => userPaused || ytPaused || hidden,
-    everyFewTicks: () => { session?.refreshUi(); },
+    everyFewTicks: () => {
+      session?.refreshUi();
+      const g = session?.game, me = g?.players[0];
+      sound.warning(!!g && !!me && g.running && me.alive && !overlay.visible() && !userPaused && me.inOwner !== 0 && me.inOwner !== 1);      // standing on someone else's land: the warning keeps sounding until you leave it
+    },
     applyResolution: (r) => { shell.resize(window.innerWidth, window.innerHeight); shell.setPixelRatio(r); },
   });
 }
