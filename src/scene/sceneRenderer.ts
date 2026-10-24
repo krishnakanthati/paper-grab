@@ -98,7 +98,7 @@ export function createSceneRenderer(shell: Shell, overlayHost: HTMLElement, game
     return len;
   };
   let pending: { startAt: number } | null = null;
-  let replay: { g: number; r: number; clock: number; hitT: number; killer: number; far: boolean; next: number; stars: number; landG: number; fx: boolean; route: { pts: number[]; cum: number[] } | null; saved: Array<{ x: number; y: number; px: number; py: number; angle: number; pa: number; alive: boolean; path: number[] }>; buf: Float32Array } | null = null;
+  let replay: { g: number; r: number; clock: number; hitT: number; killer: number; far: boolean; next: number; stars: number; members: Array<[number, number]>; landG: number; fx: boolean; route: { pts: number[]; cum: number[] } | null; saved: Array<{ x: number; y: number; px: number; py: number; angle: number; pa: number; alive: boolean; path: number[] }>; buf: Float32Array } | null = null;
   const tag = document.createElement('div');
   tag.className = 'replay-tag';
   tag.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.6-5.9" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M4.2 3.6v4.8h4.8" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>replay';
@@ -112,7 +112,7 @@ export function createSceneRenderer(shell: Shell, overlayHost: HTMLElement, game
     if (!fatal || history.length < 2) return;
     slash.clear();
     replay = {
-      g: -REPLAY.lookBackMs, r: 0, clock: nowMs, hitT: fatal.t, killer: fatal.killer, far: fatal.far, next: fatal.far ? fatal.stars - 1 : 0, stars: fatal.far ? fatal.stars : 1, landG: fatal.far ? SLASH.windupMs + REPLAY.throwFlyMs + (fatal.stars - 1) * REPLAY.starGapMs : fatal.killer ? SLASH.planeMs * 0.45 : 0, fx: false, route: null,
+      g: -REPLAY.lookBackMs, r: 0, clock: nowMs, hitT: fatal.t, killer: fatal.killer, far: fatal.far, next: fatal.far ? fatal.stars - 1 : 0, stars: fatal.far ? fatal.stars : 1, members: [], landG: fatal.far ? SLASH.windupMs + REPLAY.throwFlyMs + (fatal.stars - 1) * REPLAY.starGapMs : fatal.killer ? SLASH.planeMs * 0.45 : 0, fx: false, route: null,
       saved: game.players.map(p => ({ x: p.x, y: p.y, px: p.px, py: p.py, angle: p.angle, pa: p.pa, alive: p.alive, path: p.path })),
       buf: new Float32Array(game.players.length * SNAP_STRIDE),
     };
@@ -141,6 +141,7 @@ export function createSceneRenderer(shell: Shell, overlayHost: HTMLElement, game
   /** Throw star `j` of the volley (0 lands on the hit and carries the impact; the rest land `j` gaps earlier), along the human's own line when there is one. */
   const launchStar = (R: NonNullable<typeof replay>, j: number) => {
     const vp = R.saved[0], kp = game.players[R.killer - 1];
+    R.members = characters.chainMembers(1);
     history.sample(R.hitT, R.buf);
     const ko = (R.killer - 1) * SNAP_STRIDE, kx = R.buf[ko], ky = R.buf[ko + 1], ka = R.buf[ko + 2];
     let route: number[] | undefined;
@@ -152,8 +153,9 @@ export function createSceneRenderer(shell: Shell, overlayHost: HTMLElement, game
     }
     if (!kp) return;
     if (!R.far) { if (j === 0) slash.add(vp.x, vp.y, ka, colorOf(1), true); return; }
-    const onLand = () => { haptic(j === 0 ? HIT_BUZZ : STAR_BUZZ); if (j) { camera.kick(0.35); return; } camera.kick(1); particles.burst(vp.x, vp.y, 0xffffff, 18, 7, 0.3); particles.burst(vp.x, vp.y, colorOf(R.killer), 14, 5, 0.36); particles.ring(vp.x, vp.y, 0xffffff, 3.2, 520); };
-    slash.addThrow(kx, ky, vp.x, vp.y, colorOf(1), true, { flyMs: REPLAY.throwFlyMs, dramatic: true, thrower: R.killer, route, onLand });
+    const target = j === 0 ? undefined : R.members[j - 1] ?? [vp.x, vp.y];     // star 0 hits you; every other star hits one member of your chain, once
+    const onLand = () => { haptic(j === 0 ? HIT_BUZZ : STAR_BUZZ); if (j) { camera.kick(0.35); particles.burst(target![0], target![1], colorOf(1), 9, 4, 0.32); return; } camera.kick(1); particles.burst(vp.x, vp.y, 0xffffff, 18, 7, 0.3); particles.burst(vp.x, vp.y, colorOf(R.killer), 14, 5, 0.36); particles.ring(vp.x, vp.y, 0xffffff, 3.2, 520); };
+    slash.addThrow(kx, ky, target ? target[0] : vp.x, target ? target[1] : vp.y, colorOf(1), true, { flyMs: REPLAY.throwFlyMs, dramatic: true, thrower: R.killer, route: target ? undefined : route, onLand });
   };
   /** Put every player where they were `replay.g` ms from the hit. */
   const pose = (R: NonNullable<typeof replay>) => {
@@ -229,10 +231,12 @@ export function createSceneRenderer(shell: Shell, overlayHost: HTMLElement, game
     captureFx: (p, claimed, takenFrom) => { effects.capture(p, claimed); territory.reveal(claimed, takenFrom, p.x, p.y); },
     killFx(victim, killer) {
       const by = killer && killer !== victim ? killer : null;
-      const stars = by && isThrow(Math.hypot(by.x - victim.x, by.y - victim.y)) ? 1 : 1;      // one star per throw; the replay shows the same number
-      if (victim.id === 1) { history.push(performance.now(), snapshot(1), true); fatal = { path: pathLog.length ? pathLog[pathLog.length - 1].path : [], killer: by ? by.id : 0, far: by ? isThrow(Math.hypot(by.x - victim.x, by.y - victim.y)) : false, t: performance.now(), stars, chain: lastCaptives[victim.id] ?? [], killerChain: by ? lastCaptives[by.id] ?? [] : [] }; }   // every end gets a replay, with the plane only when somebody threw it
+      const members = by ? characters.chainMembers(victim.id) : [];
+      const chainIds = lastCaptives[victim.id] ?? [];
+      const stars = by ? 1 + Math.max(members.length, victim.id === 1 ? chainIds.length : 0) : 1;      // one star for every member of the victim's chain, each hitting its own member once, then the one that hits the victim
+      if (victim.id === 1) { history.push(performance.now(), snapshot(1), true); fatal = { path: pathLog.length ? pathLog[pathLog.length - 1].path : [], killer: by ? by.id : 0, far: by ? isThrow(Math.hypot(by.x - victim.x, by.y - victim.y)) || stars > 1 : false, t: performance.now(), stars, chain: lastCaptives[victim.id] ?? [], killerChain: by ? lastCaptives[by.id] ?? [] : [] }; }   // every end gets a replay, with the plane only when somebody threw it
       if (!by) { effects.kill(victim); deathFx(victim.x, victim.y, victim.angle, victim.id); return; }
-      const strong = by.id === 1, far = Math.hypot(by.x - victim.x, by.y - victim.y), thrown = isThrow(far);
+      const strong = by.id === 1, far = Math.hypot(by.x - victim.x, by.y - victim.y), thrown = isThrow(far) || stars > 1;
       // the victim stands still until the knife lands, so you can see what hit them; only then do they fly
       const route = thrown ? trailRoute(lastPath[victim.id] ?? [], by.x, by.y, victim.x, victim.y) : null;
       const flyMs = thrown ? throwDuration(route ? routeLength(route) : far) : 0;
@@ -241,7 +245,8 @@ export function createSceneRenderer(shell: Shell, overlayHost: HTMLElement, game
       const t = window.setTimeout(() => { timers.delete(t); effects.kill(victim); }, wait); timers.add(t);
       deathFx(victim.x, victim.y, victim.angle, victim.id, 1, wait);
       if (thrown) for (let k = 0; k < stars; k++) {
-        const fire = () => slash.addThrow(by.x, by.y, victim.x, victim.y, colorOf(victim.id), strong, { flyMs, thrower: by.id, route: route ?? undefined, onLand: victim.id === 1 ? () => { haptic(k === stars - 1 ? HIT_BUZZ : STAR_BUZZ); camera.kick(k === stars - 1 ? 0.8 : 0.3); } : undefined });
+        const last = k === stars - 1, member = last ? undefined : members[k] ?? [victim.x, victim.y];      // the last star hits the victim itself, every earlier one a member of its chain
+        const fire = () => slash.addThrow(by.x, by.y, member ? member[0] : victim.x, member ? member[1] : victim.y, colorOf(victim.id), strong, { flyMs, thrower: by.id, route: last ? route ?? undefined : undefined, onLand: () => { if (member) particles.burst(member[0], member[1], colorOf(victim.id), 9, 4, 0.32); if (victim.id === 1) { haptic(last ? HIT_BUZZ : STAR_BUZZ); camera.kick(last ? 0.8 : 0.3); } } });
         if (k === 0) fire(); else { const ft = window.setTimeout(() => { timers.delete(ft); fire(); }, k * REPLAY.starGapMs); timers.add(ft); }
       }      // from a distance the knife is THROWN
       else {

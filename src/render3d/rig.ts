@@ -132,6 +132,11 @@ export function createRig(game: Game, speciesOf?: (id: number) => Species | unde
     setArm(id: number, dx: number, dz: number, wind: number, rel: number) { arms.set(id, { dx, dz, wind, rel }); },
     clearArm(id: number) { arms.delete(id); },
     /** Hide every captive and stop moving them (a replay is showing the past), or bring them back. */
+    /** Where each member of this player's chain stands right now (cells), nearest first. */
+    chainMembers(id: number): Array<[number, number]> {
+      const ch = chains.get(id); if (!ch) return [];
+      return ch.followers.filter(f => f.leaveAt < 0).map(f => [f.lastX, f.lastY] as [number, number]);
+    },
     setReplayChain(id: number, captives: number[] | null) { if (captives && captives.length) { replayChains.set(id, captives); reseed.add(id); } else replayChains.delete(id); },
     holdChains(on: boolean) {
       if (!on && chainsHeld) for (const p of game.players) reseed.add(p.id);

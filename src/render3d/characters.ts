@@ -25,6 +25,8 @@ export interface Characters3D {
   clearArm(id: number): void;
   /** Hide the captives and freeze their chains (during a replay), or release them again. */
   holdChains(on: boolean): void;
+  /** Where each member of this player's chain stands on the ground right now (cells), nearest first; empty with no chain. */
+  chainMembers(id: number): Array<[number, number]>;
   /** During a replay: show these captives (the ids the player held when it died) following it, as they did, until it is hit. null clears it. */
   setReplayChain(id: number, captives: number[] | null): void;
   /** Where this player's throwing hand is on the ground (cells), or null when it is not throwing. */
@@ -52,6 +54,7 @@ export function createCharacters3D(onAttach?: () => void): Characters3D {
     setArm(id, dx, dz, wind, rel) { rig?.setArm(id, dx, dz, wind, rel); },
     clearArm(id) { rig?.clearArm(id); },
     holdChains(on) { rig?.holdChains(on); },
+    chainMembers: id => rig?.chainMembers(id) ?? [],
     setReplayChain(id, captives) { rig?.setReplayChain(id, captives); },
     handAt: id => rig?.handAt(id) ?? null,
     frame(view) {
