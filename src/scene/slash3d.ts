@@ -78,15 +78,19 @@ export function createSlash3D(onHit?: (x: number, y: number, scale: number) => v
   const total = () => SLASH.secondDelayMs + SLASH.planeMs + SLASH.fadeMs;
 
   /** A ninja star (shuriken): four swept blades round a centre hole, a dark outline and a soft glow in the thrower's colour so it shows on any floor, two-tone steel. `size` is its diameter; `ang` is how far round it has turned. */
-  const planeShape = (g: GroundBatch, x: number, y: number, ang: number, size: number, alpha: number, accent = 0xef4b4b) => {
+  const planeShape = (g: GroundBatch, x: number, y: number, ang: number, size: number, alpha: number, accent = 0xef4b4b, bold = false) => {
     const K = SLASH.colors, R = size * 0.5;
     const at = (a: number, r: number) => [x + Math.cos(ang + a) * r * R, y + Math.sin(ang + a) * r * R] as const;
     const tips = [0, 1, 2, 3].map(i => at(i * Math.PI / 2, 1));
     const inner = [0, 1, 2, 3].map(i => at(i * Math.PI / 2 + 1.08, 0.36));       // each blade's long leading edge sweeps round to here: a pinwheel, not a plus sign
     const ring: number[] = [];
     for (let i = 0; i < 4; i++) ring.push(tips[i][0], tips[i][1], inner[i][0], inner[i][1]);
-    g.circle(x, y, R * 1.3, accent, alpha * 0.2, 20);                                  // a soft halo so it never disappears into the floor
-    g.polyline([...ring, ring[0], ring[1]], Math.max(0.07 * size, 0.05), K.outline, alpha);   // the dark outline
+    if (bold) {                                                                         // the replay: a strong coloured disc with a dark ring under the star, so it reads at a glance on any floor
+      g.circle(x, y, R * 1.6, K.outline, alpha * 0.35, 24);
+      g.circle(x, y, R * 1.45, accent, alpha * 0.6, 24);
+      g.circle(x, y, R * 1.05, 0xffffff, alpha * 0.35, 24);
+    } else g.circle(x, y, R * 1.3, accent, alpha * 0.2, 20);                          // a soft halo so it never disappears into the floor
+    g.polyline([...ring, ring[0], ring[1]], Math.max((bold ? 0.12 : 0.07) * size, 0.05), K.outline, alpha);   // the dark outline
     for (let i = 0; i < 4; i++) {
       const prev = inner[(i + 3) % 4];
       g.tri(x, y, tips[i][0], tips[i][1], inner[i][0], inner[i][1], K.steel, alpha);        // the lit side of each blade
@@ -143,7 +147,7 @@ export function createSlash3D(onHit?: (x: number, y: number, scale: number) => v
             gfx.ring(sx, sy, size * (2.2 - 1.5 * w), Math.max(minWt, 0.1), T.accent, 0.8 * w);      // a ring that CONVERGES on the star as it charges
           }
           const bigger = size * (1 + (D ? 0.6 : 0.25) * w);
-          planeShape(gfx, sx, sy, ang + (D ? w * w * Math.PI * 6 : 0), bigger, 1, T.accent);
+          planeShape(gfx, sx, sy, ang + (D ? w * w * Math.PI * 6 : 0), D ? bigger * 1.5 : bigger, 1, T.accent, D);
           continue;
         }
         if (!T.launched) { T.launched = true; if (T.hx !== undefined && T.hy !== undefined) { T.x0 = T.hx; T.y0 = T.hy; } onLaunch?.(T.x0, T.y0, T.scale); }      // it leaves the hand, not the middle of the body
@@ -154,13 +158,15 @@ export function createSlash3D(onHit?: (x: number, y: number, scale: number) => v
         const [px, py] = at(k);
         const fade = flying ? 1 : 1 - clamp01((after - SLASH.stickMs * 0.55) / (SLASH.stickMs * 0.45));
         if (flying && u > 0.03) {                                   // the trail: a curved ribbon that tapers to nothing behind the plane
-          const from = Math.max(0, k - SLASH.trailLen * Math.min(1, u * 4)), n = SLASH.trailSteps;
-          let [ax, ay] = at(from);
-          for (let s2 = 1; s2 <= n; s2++) {
-            const kk = from + (k - from) * (s2 / n), [bx, by] = at(kk), taper = s2 / n;
-            gfx.line(ax, ay, bx, by, Math.max(minWt * 1.4 * taper, 0.34 * T.scale * taper), T.accent, 0.5 * taper, true);
-            gfx.line(ax, ay, bx, by, Math.max(minWt * 0.6 * taper, 0.12 * T.scale * taper), SLASH.colors.edge, 1 * taper, true);
-            ax = bx; ay = by;
+          const D = T.dramatic, from = Math.max(0, k - SLASH.trailLen * (D ? 1.5 : 1) * Math.min(1, u * 4)), n = SLASH.trailSteps * (D ? 2 : 1);
+          const pts: Array<readonly [number, number]> = [at(from)];
+          for (let s2 = 1; s2 <= n; s2++) pts.push(at(from + (k - from) * (s2 / n)));
+          for (const [layer, color, wide, cells] of [[0, lighten(T.accent, 0.12), D ? 2.4 : 1, 0.34], [1, SLASH.colors.edge, D ? 1.8 : 1, 0.12]] as const) {      // the coloured body first, then the white core on top, so the pieces never overdraw each other
+            const minW = layer ? minWt * 0.6 : minWt * 1.4;
+            for (let s2 = 1; s2 <= n; s2++) {
+              const taper = s2 / n;
+              gfx.line(pts[s2 - 1][0], pts[s2 - 1][1], pts[s2][0], pts[s2][1], Math.max(minW * taper, cells * T.scale * taper) * wide, color, 1, true);
+            }
           }
         }
         if (arm && T.thrower && T.armOut) {                         // the hand flicks forward after letting go, then the arm is put away
@@ -169,7 +175,7 @@ export function createSlash3D(onHit?: (x: number, y: number, scale: number) => v
         }
         const turn = flying ? ang + SLASH.throwSpins * Math.PI * 2 * (1 - k) : ang + 0.5 * Math.sin(after * 0.05) * (1 - clamp01(after / SLASH.stickMs));   // spinning in the air, nose first on landing, then quivering where it stuck
         const rise = 1 + SLASH.throwGrow * (flying ? Math.sin(Math.PI * k) : 0);
-        planeShape(gfx, px, py, turn, size * rise, fade, T.accent);
+        planeShape(gfx, px, py, turn, size * rise * (T.dramatic ? 1.5 : 1), fade, T.accent, T.dramatic);
         if (T.dramatic && after > 0 && after < SLASH.ringMs * 1.6) {  // the impact: a white flash and lines bursting out of the hit
           const r = after / (SLASH.ringMs * 1.6), e = easeOutCubic(r);
           gfx.circle(T.x1, T.y1, (0.6 + 1.3 * e) * T.scale, SLASH.colors.edge, 0.7 * (1 - r) * (1 - r), 20);
