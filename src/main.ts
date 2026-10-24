@@ -126,7 +126,7 @@ async function main() {
       const me = session?.game.players[0];
       if (!session || !me?.alive || !session.game.running || overlay.visible() || userPaused || performance.now() - lastFlip < FLIP.cooldownMs) return;
       const kind = pickFlipKind(lastKind);           // a different trick each time
-      lastKind = kind; lastFlip = performance.now(); session.flip(kind); sound.flip(FLIP_KINDS.indexOf(kind));
+      lastKind = kind; lastFlip = performance.now(); session.flip(kind); sound.flip(FLIP_KINDS.indexOf(kind)); progression.flipPoint();
     },
   }, $('dpad'));
 

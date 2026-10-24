@@ -13,7 +13,7 @@ const SWATCH: Record<string, string> = {
 };
 
 export function createProgression(o: { stats: () => ConqueredStats; characterNames: readonly string[]; onPointsChanged?: () => void }) {
-  const total = () => points(profile.goalsDone(), o.stats().done);
+  const total = () => points(profile.goalsDone(), o.stats().done, profile.flipPoints());
   const stat = $('conqStat'), tray = $('trailPick');
 
   const renderStat = () => {
@@ -44,6 +44,8 @@ export function createProgression(o: { stats: () => ConqueredStats; characterNam
   render();
   return {
     points: total,
+    /** A flip in the air is worth one point. */
+    flipPoint() { this.award(() => profile.addFlipPoint(), 'flip  ·  +1 point'); },
     render,
     /** Run `earn` (which adds points), then announce anything it unlocked. */
     award(earn: () => void, what: string) {

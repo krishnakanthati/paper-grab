@@ -1,4 +1,4 @@
-// What points buy. A point comes from finishing a round goal (1) or conquering a country (CONQUER_POINTS). The first few
+// What points buy. A point comes from finishing a round goal (1), doing a flip in the air (1) or conquering a country (CONQUER_POINTS). The first few
 // characters and the plain trail are free; the rest unlock one by one. Costs are plain numbers here, nothing else decides them.
 export const CONQUER_POINTS = 3;
 export const FREE_CHARACTERS = 6;                 // the first six in the cast
@@ -16,7 +16,7 @@ export const DEFAULT_TRAIL = 'plain';
 
 export const characterCost = (index: number) => (index < FREE_CHARACTERS ? 0 : (index - FREE_CHARACTERS + 1) * CHARACTER_STEP);
 export const trailById = (id: string | null | undefined) => TRAILS.find(t => t.id === id) ?? TRAILS[0];
-export const points = (goalsDone: number, conquered: number) => Math.max(0, goalsDone) + CONQUER_POINTS * Math.max(0, conquered);
+export const points = (goalsDone: number, conquered: number, flips = 0) => Math.max(0, goalsDone) + Math.max(0, flips) + CONQUER_POINTS * Math.max(0, conquered);
 export const characterUnlocked = (index: number, pts: number) => pts >= characterCost(index);
 export const trailUnlocked = (id: string, pts: number) => pts >= trailById(id).cost;
 
