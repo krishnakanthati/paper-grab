@@ -7,14 +7,16 @@ export const SCARE = {
   cooldownMs: 120_000,      // at least this long between two scares
   chancePerCheck: 1 / 120,  // checked ~6 times a second while the moment is right (see `exposed`): about one scare per 20 s of exposure
   minTrail: 30,             // the moment is right when you are off your land with a line at least this many cells long: committed, far from home, eyes on the loop
+  firstMinTrail: 6,         // the first scare of a round needs only a short line...
+  firstChance: 1 / 12,      // ...and is far more likely, so it lands soon after the grace period (about 2 s of being out)
   showMs: 650,              // how long the face stays
 } as const;
 
-export interface ScareState { roundMs: number; sinceLastMs: number; trail: number; }
+export interface ScareState { roundMs: number; sinceLastMs: number; trail: number; first?: boolean; }
 
 /** Should a scare fire on this check? `roll` is a random number in [0, 1). It only ever hits while you are out on a long, unfinished line. */
 export function scareDue(s: ScareState, roll: number, c: typeof SCARE | typeof TEST_SCARE = SCARE): boolean {
-  return s.roundMs >= c.graceMs && s.sinceLastMs >= c.cooldownMs && s.trail >= c.minTrail && roll < c.chancePerCheck;
+  return s.roundMs >= c.graceMs && s.sinceLastMs >= c.cooldownMs && (s.first ? s.trail >= SCARE.firstMinTrail && roll < SCARE.firstChance : s.trail >= c.minTrail && roll < c.chancePerCheck);
 }
 
 /** Open the page with `?scare=test` to see it quickly: no grace period, a short line is enough, and it fires within seconds. */
@@ -43,11 +45,11 @@ export function createJumpScare(host: HTMLElement, sting: () => void, random: ()
   host.appendChild(el);
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   const cfg = new URLSearchParams(location.search).get('scare') === 'test' ? TEST_SCARE : SCARE;
-  let roundMs = 0, sinceLastMs = 0, timer = 0;
+  let roundMs = 0, sinceLastMs = 0, timer = 0, first = true;
 
   const fire = (color = '#ef4b4b') => {
     if (storage.get('noscare') === '1') return;
-    sinceLastMs = 0;
+    sinceLastMs = 0; first = false;
     sting();
     el.innerHTML = face(color);
     el.style.setProperty('--scare', color);
@@ -62,9 +64,9 @@ export function createJumpScare(host: HTMLElement, sting: () => void, random: ()
     check(ms, { playing, trail, color }) {
       if (!playing) return;
       roundMs += ms; sinceLastMs += ms;
-      if (scareDue({ roundMs, sinceLastMs, trail }, random(), cfg)) fire(color);
+      if (scareDue({ roundMs, sinceLastMs, trail, first }, random(), cfg)) fire(color);
     },
-    reset() { roundMs = 0; sinceLastMs = cfg.cooldownMs; },
+    reset() { roundMs = 0; first = true; sinceLastMs = cfg.cooldownMs; },
     fire,
   };
 }

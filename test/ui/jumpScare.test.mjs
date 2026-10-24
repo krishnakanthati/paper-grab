@@ -20,3 +20,10 @@ test('it only hits while you are out on a long line', () => {
   assert.equal(scareDue({ ...base, trail: SCARE.minTrail - 1 }, 0), false);
   assert.equal(scareDue({ ...base, trail: SCARE.minTrail }, 0), true);
 });
+
+test('the first scare of a round needs only a short line and is far likelier', () => {
+  const base = { roundMs: SCARE.graceMs, sinceLastMs: SCARE.cooldownMs, trail: SCARE.firstMinTrail };
+  assert.equal(scareDue({ ...base, first: true }, 0.05), true);
+  assert.equal(scareDue({ ...base, first: false }, 0.05), false);
+  assert.equal(scareDue({ ...base, first: true, trail: SCARE.firstMinTrail - 1 }, 0), false);
+});
