@@ -9,7 +9,7 @@ import { createNameTags } from '../../src/scene/overlays.ts';
 import { createParticles3D } from '../../src/scene/particles3d.ts';
 import { createCameraView } from '../../src/scene/shell.ts';
 import { SLASH, createSlash3D, isThrow, planeProgress, throwDuration, throwProgress } from '../../src/scene/slash3d.ts';
-import { createTerritory3D } from '../../src/scene/territory3d.ts';
+import { brushAt, createTerritory3D, samplePath } from '../../src/scene/territory3d.ts';
 import { CHUNK_POINTS, createTrail3D } from '../../src/scene/trail3d.ts';
 import { NAME_TAG } from '../../src/config.ts';
 import { alone, game, rng, startWithRoom } from '../helpers.mjs';
@@ -472,4 +472,30 @@ test('replay throw: a dramatic star draws more than a plain one (aim line, charg
   const plain = run(false), big = run(true);
   assert.equal(big.landed, 1); assert.equal(big.left, 0);
   assert.ok(big.peak >= plain.peak, `dramatic ${big.peak} vs plain ${plain.peak} vertices`);
+});
+
+test('the colouring-in brush follows the line the player drew, then swells to fill the inside', () => {
+  const path = []; for (let i = 0; i <= 40; i++) path.push(i, 0);               // a straight 40-cell line
+  const pts = samplePath(path, 24);
+  assert.equal(pts.length, 48);
+  assert.deepEqual(pts.slice(0, 2), [0, 0]); assert.ok(Math.abs(pts[46] - 40) < 1e-9, 'both ends are kept');
+  const early = brushAt(pts, 0.1, 2, 9), mid = brushAt(pts, 0.3, 2, 9), done = brushAt(pts, 0.6, 2, 9), end = brushAt(pts, 1, 2, 9);
+  assert.ok(early.hx < mid.hx && mid.hx < done.hx, 'the head moves along the line');
+  assert.ok(early.count < mid.count, 'the part behind it stays inked');
+  assert.equal(early.radius, 2); assert.equal(done.radius, 2, 'while it follows the line the disc is small');
+  assert.ok(Math.abs(done.hx - 40) < 1e-9, 'it reaches the end of the line when the line share is over');
+  assert.ok(Math.abs(end.radius - 9) < 1e-9, 'then it swells to cover everything');
+});
+
+test('a capture with a drawn line builds an overlay that uses it', () => {
+  const { G } = busyGame();
+  const t = createTerritory3D(G);
+  t.sync();
+  const me = G.players[0];
+  const cells = []; for (let i = 0, n = 0; i < G.land.length && n < 12; i++) if (G.land[i] && G.owner[i] === 0) { cells.push(i); n++; }
+  t.reveal(cells, new Map(), me.x, me.y, [me.x, me.y, me.x + 5, me.y, me.x + 5, me.y + 5]);
+  t.update(0); t.update(300);
+  assert.equal(t.ghostCount(), 1);
+  t.update(3000);
+  assert.equal(t.ghostCount(), 0);
 });

@@ -229,7 +229,7 @@ export function createSceneRenderer(shell: Shell, overlayHost: HTMLElement, game
       pointers.update(nowMs, shell);
       shell.render();
     },
-    captureFx: (p, claimed, takenFrom) => { effects.capture(p, claimed); territory.reveal(claimed, takenFrom, p.x, p.y); },
+    captureFx: (p, claimed, takenFrom) => { effects.capture(p, claimed); territory.reveal(claimed, takenFrom, p.x, p.y, lastPath[p.id]); },
     killFx(victim, killer) {
       const by = killer && killer !== victim ? killer : null;
       const members = by ? characters.chainMembers(victim.id) : [];

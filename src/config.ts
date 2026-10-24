@@ -166,7 +166,7 @@ export const EFFECTS = {
   maxParticles: 450,           // hard cap on live particles (also scaled down on slow devices)
   deathLineMs: 700,            // a dead player's open line fades away over this long instead of vanishing
   convertMs: 750,              // (same fade) land that changes hands melts from its old colour into the new one over this long
-  revealMs: 950,               // newly claimed land is coloured in over this long instead of appearing at once
+  revealMs: 1300,              // newly claimed land is coloured in over this long instead of appearing at once
   revealSpread: 0.75,          // ...as ink spreading out from the head for this share of that time, with an overall fade on top
   rebuildsPerFrame: 3,         // territories redrawn per frame at most (after the first draw), so a big multi-player change never costs one long frame
   revealMinCells: 3,           // smaller grabs than this are not worth a fade
