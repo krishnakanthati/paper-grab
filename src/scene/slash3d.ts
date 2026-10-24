@@ -169,10 +169,6 @@ export function createSlash3D(onHit?: (x: number, y: number, scale: number) => v
         }
         const turn = flying ? ang + SLASH.throwSpins * Math.PI * 2 * (1 - k) : ang + 0.5 * Math.sin(after * 0.05) * (1 - clamp01(after / SLASH.stickMs));   // spinning in the air, nose first on landing, then quivering where it stuck
         const rise = 1 + SLASH.throwGrow * (flying ? Math.sin(Math.PI * k) : 0);
-        if (T.dramatic && flying) for (let j = 4; j >= 1; j--) {      // afterimages: ghost stars strung back along the path
-          const kk = Math.max(0, k - 0.07 * j), [gx, gy] = at(kk);
-          planeShape(gfx, gx, gy, turn + j * 0.6, size * rise * (1 - 0.08 * j), 0.34 / j, T.accent);
-        }
         planeShape(gfx, px, py, turn, size * rise, fade, T.accent);
         if (T.dramatic && after > 0 && after < SLASH.ringMs * 1.6) {  // the impact: a white flash and lines bursting out of the hit
           const r = after / (SLASH.ringMs * 1.6), e = easeOutCubic(r);

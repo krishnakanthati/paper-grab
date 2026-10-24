@@ -4,7 +4,7 @@ import { WORLD_SHAPE } from '../data/worldMask.ts';
 import { buildArena, bump, recount } from './arena.ts';
 import { collectBeacons, resetBeacons, updateBeacons } from './beacons.ts';
 import { collectPowerups, resetPowerups, updatePowerups } from './powerups.ts';
-import { chainContacts, kill, lineContacts, resolveHeads } from './combat.ts';
+import { chainContacts, kill, lineContacts, resolveHeads, separateHeads } from './combat.ts';
 import { stepPlayer, wrapAngle } from './movement.ts';
 import { newPlayer, spawn } from './spawn.ts';
 import type { Ctx, Game, GameEvents, GameOptions, Rules } from './types.ts';
@@ -65,6 +65,7 @@ export function createGame(random: () => number = Math.random, events: GameEvent
     }
     lineContacts(g);
     resolveHeads(g);
+    separateHeads(g);
     chainContacts(g);
     updateBeacons(g); collectBeacons(g);
     updatePowerups(g); collectPowerups(g);

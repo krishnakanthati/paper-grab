@@ -128,6 +128,36 @@ export function resolveHeads(g: Ctx) {
 }
 
 /**
+ * Heads that touch and kill nobody (both on their own land, or a shield) must not pass through each other: push them
+ * apart to just-touching. A head drawing a line is never moved, since that would kink its path; if it meets a free head
+ * only the free one gives way.
+ */
+export function separateHeads(g: Ctx) {
+  const ps = g.players;
+  for (let i = 0; i < ps.length; i++)
+    for (let j = i + 1; j < ps.length; j++) {
+      const a = ps[i], b = ps[j];
+      if (!a.alive || !b.alive) continue;
+      let dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy);
+      if (d >= HEAD_HIT) continue;
+      if (d < 1e-6) { dx = Math.cos(a.angle + Math.PI); dy = Math.sin(a.angle + Math.PI); d = 1; }
+      const ux = dx / d, uy = dy / d, gap = HEAD_HIT - Math.min(d, HEAD_HIT);
+      const aFixed = a.trail.length > 0, bFixed = b.trail.length > 0;
+      if (aFixed && bFixed) continue;
+      const wa = aFixed ? 0 : bFixed ? 1 : 0.5, wb = 1 - wa;
+      const shove = (p: Player, sx: number, sy: number) => {
+        if (!g.arena.inside(p.x + sx, p.y + sy)) return false;
+        p.x += sx; p.y += sy; p.px += sx; p.py += sy;
+        return true;
+      };
+      const okA = wa === 0 || shove(a, -ux * gap * wa, -uy * gap * wa);
+      const okB = wb === 0 || shove(b, ux * gap * wb, uy * gap * wb);
+      if (!okA && okB && wb < 1 && !bFixed) shove(b, ux * gap * wa, uy * gap * wa);       // blocked by the coast: the other takes the whole push
+      else if (!okB && okA && wa < 1 && !aFixed) shove(a, -ux * gap * wb, -uy * gap * wb);
+    }
+}
+
+/**
  * Captives follow their leader along the path it walked, so each one is a real place on the map. A head that touches a
  * captive takes it and everyone behind it (a cut tail); the captives in front of it stay safe with their leader. Touching
  * the first captive therefore takes the whole chain. The leader's own head never cuts its own chain.

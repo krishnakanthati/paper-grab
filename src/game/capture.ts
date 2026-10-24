@@ -115,6 +115,7 @@ export function capture(g: Ctx, p: Player) {
     }
   }
   giveBackGrazed(g, p, walked, before, claimed);
+  fillPockets(g, p, claimed, taken, takenFrom);
   fillCoastGap(g, p, loop, claimed, taken, takenFrom);
   if (p.id === 1) claimRim(g, p, claimed, walked);
   p.inOwner = p.id;
@@ -164,5 +165,51 @@ function fillCoastGap(g: Ctx, p: Player, loop: number[], claimed: number[], take
       if (from) { bump(g, from); taken.set(from, (taken.get(from) ?? 0) + 1); (takenFrom.get(from) ?? takenFrom.set(from, []).get(from)!).push(j); }
       g.owner[j] = p.id; claimed.push(j);
     }
+  }
+}
+
+/**
+ * Seal the air gaps: a small patch of land that is walled in by our territory (and the sea) on every side is part of the
+ * shape we just coloured, so claim it. The enclosed-region vote and the graze give-back can both leave such slivers behind.
+ * Only small patches qualify, so the big unclaimed remainder of the map is never swallowed.
+ */
+const POCKET_MAX_CELLS = 40;
+function fillPockets(g: Ctx, p: Player, claimed: number[], taken: Map<number, number>, takenFrom: Map<number, number[]>) {
+  const { land, owner } = g;
+  const seen = new Set<number>();
+  const seeds = new Set<number>();
+  for (const c of claimed) {
+    const x = c % g.NX, y = (c / g.NX) | 0;
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const nx = x + dx, ny = y + dy;
+      if (nx < 0 || ny < 0 || nx >= g.NX || ny >= g.NY) continue;
+      const j = ny * g.NX + nx;
+      if (land[j] && owner[j] !== p.id) seeds.add(j);
+    }
+  }
+  for (const s of seeds) {
+    if (seen.has(s)) continue;
+    const cells: number[] = [], stack = [s];
+    seen.add(s);
+    let escaped = false;
+    while (stack.length) {
+      const c = stack.pop()!, x = c % g.NX, y = (c / g.NX) | 0;
+      cells.push(c);
+      if (cells.length > POCKET_MAX_CELLS) { escaped = true; break; }
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const nx = x + dx, ny = y + dy;
+        if (nx < 0 || ny < 0 || nx >= g.NX || ny >= g.NY) continue;
+        const j = ny * g.NX + nx;
+        if (!land[j] || owner[j] === p.id || seen.has(j)) continue;
+        seen.add(j); stack.push(j);
+      }
+    }
+    if (escaped) { for (const c of stack) seen.add(c); continue; }
+    for (const c of cells) {
+      const from = owner[c];
+      if (from) { bump(g, from); taken.set(from, (taken.get(from) ?? 0) + 1); (takenFrom.get(from) ?? takenFrom.set(from, []).get(from)!).push(c); }
+      owner[c] = p.id; claimed.push(c);
+    }
+    bump(g, p.id); g.countsDirty = true;
   }
 }
