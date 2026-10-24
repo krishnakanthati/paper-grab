@@ -649,7 +649,7 @@ kbd[aria-label] { display: inline-flex; align-items: center; justify-content: ce
 #rules[hidden] { display: none; }
 #rules li {
   display: block; white-space: nowrap; padding: 0; background: none; border: 0; box-shadow: none; 
-  font: 900 clamp(17px, 3.2dvh, 26px)/1.2 ui-rounded, 'SF Pro Rounded', 'Baloo 2', 'Nunito', 'Trebuchet MS', 'Segoe UI', system-ui, sans-serif; letter-spacing: .02em;
+  font: 900 clamp(13px, 2.3dvh, 18px)/1.2 ui-rounded, 'SF Pro Rounded', 'Baloo 2', 'Nunito', 'Trebuchet MS', 'Segoe UI', system-ui, sans-serif; letter-spacing: .02em;
   color: #7ee8fa; text-shadow: 0 0 14px rgba(12, 220, 250, .55), 0 2px 8px rgba(0, 10, 60, .5);          /* the title's cyan and glow */
 }
 #rules b { display: inline-block; margin-right: .45em; vertical-align: -.1em; line-height: 0; }
