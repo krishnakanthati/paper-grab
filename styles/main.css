@@ -648,13 +648,10 @@ kbd[aria-label] { display: inline-flex; align-items: center; justify-content: ce
 #rules { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 5px; }
 #rules[hidden] { display: none; }
 #rules li {
-  display: block; white-space: nowrap; padding: 0; background: none; border: 0; box-shadow: none; transform: rotate(-2deg); transform-origin: right center;
+  display: block; white-space: nowrap; padding: 0; background: none; border: 0; box-shadow: none; 
   font: 900 clamp(17px, 3.2dvh, 26px)/1.2 ui-rounded, 'SF Pro Rounded', 'Baloo 2', 'Nunito', 'Trebuchet MS', 'Segoe UI', system-ui, sans-serif; letter-spacing: .02em;
-  color: var(--rc, #fff); -webkit-text-stroke: .16em #0b1f6b; paint-order: stroke fill; text-shadow: 0 3px 0 rgba(6, 20, 90, .55), 0 6px 14px rgba(0, 10, 60, .45);
+  color: #7ee8fa; text-shadow: 0 0 14px rgba(12, 220, 250, .55), 0 2px 8px rgba(0, 10, 60, .5);          /* the title's cyan and glow */
 }
-#rules li:nth-child(1) { --rc: #ffe14a; }
-#rules li:nth-child(2) { --rc: #5dffb0; }
-#rules li:nth-child(3) { --rc: #ff86b4; }
 #rules b { margin-right: .4em; font-weight: 900; }
 @media (max-height: 470px) { #rules { display: none; } }
 @media (max-width: 700px) { #rules { margin-top: 46px; } }           /* on a phone the rules sit under the title */
