@@ -408,7 +408,7 @@ button[disabled], #btn[disabled] { cursor: default; }
 #bar .round { width: var(--row-h); min-width: var(--row-h); padding: 0; position: relative; }
 #bar .round svg { width: calc(var(--row-h) * .56); height: calc(var(--row-h) * .56); }
 #bar .round::after { content: ''; position: absolute; inset: -6px; }
-#bar #kills { padding: 0 12px 0 8px; }
+#bar #kills { padding: 0; }
 
 /* the character arrows: flat, no border and no shading, just a soft disc with a white chevron */
 #charPick .round { border: 0; box-shadow: none; background: rgba(255, 255, 255, .22); color: #fff; backdrop-filter: none; -webkit-backdrop-filter: none; filter: none; }
@@ -665,10 +665,13 @@ kbd[aria-label] { display: inline-flex; align-items: center; justify-content: ce
 
 /* the top-bar icons (shield, pause, tilt): just the icon, white with a dark outline and a soft shadow like the skull, no circle or border */
 #bar .round, #bar .round:hover, #bar .round:active {
-  width: 34px; min-width: 34px; background: none; border: 0; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; color: #fff;
+  width: 26px; min-width: 26px; background: none; border: 0; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; color: #fff;
   filter: drop-shadow(1px 0 0 #1b2a6b) drop-shadow(-1px 0 0 #1b2a6b) drop-shadow(0 1px 0 #1b2a6b) drop-shadow(0 -1px 0 #1b2a6b) drop-shadow(0 2px 3px rgba(5, 25, 90, .5));
 }
-#bar .round svg { width: 26px; height: 26px; margin: 0 auto; }
+#bar { gap: 12px; }                                                   /* the same space between the skull and its count's end, the shield and the pause icon */
+#bar .round svg { width: 26px; height: 26px; }
+#bar .round::after { inset: -8px; }
+#shield { margin-left: 6px; }                                         /* the shield's drawing has less empty margin than the skull's number end, so this evens out the visible gaps */
 #bar .round:hover { transform: none; }
 /* the shield: ready = pulses, on = glows cyan, recharging = faded */
 #shield[data-state="off"] { display: none; }
