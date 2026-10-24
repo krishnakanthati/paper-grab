@@ -554,7 +554,6 @@ kbd[aria-label] { display: inline-flex; align-items: center; justify-content: ce
 #stage:has(#ov[style*="flex"]) #toast { visibility: hidden; }
 #charStage.locked { filter: none; }
 
-/* ---------- the safe-zone shield button ---------- */
 
 /* the country slider: each chip carries the country's own flag; the chosen one is gold and a touch bigger; the ends fade out */
 #countryList { gap: 10px; padding: 6px 28px 10px; scroll-snap-type: x proximity; scroll-padding: 0 28px;
@@ -663,11 +662,17 @@ kbd[aria-label] { display: inline-flex; align-items: center; justify-content: ce
   text-shadow: 0 1px 0 #f2b705, 0 2px 0 #e0a400, 0 3px 0 #cc9300, 0 4px 0 #b88200, 0 5px 0 #a37100, 0 6px 0 #8f6200, 0 12px 16px rgba(0, 20, 80, .45), 0 0 18px rgba(255, 220, 80, .55);
 }
 
-/* the safe-zone shield button: ready = bright, on = glowing, recharging = a ring filling up */
-#shield { color: #fff; background: #2f8cf0; box-shadow: 0 0 0 0 rgba(47, 140, 240, .6), var(--shadow); transition: background .2s, opacity .2s; }
+
+/* the top-bar icons (shield, pause, tilt): just the icon, white with a dark outline and a soft shadow like the skull, no circle or border */
+#bar .round, #bar .round:hover, #bar .round:active {
+  width: 34px; min-width: 34px; background: none; border: 0; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; color: #fff;
+  filter: drop-shadow(1px 0 0 #1b2a6b) drop-shadow(-1px 0 0 #1b2a6b) drop-shadow(0 1px 0 #1b2a6b) drop-shadow(0 -1px 0 #1b2a6b) drop-shadow(0 2px 3px rgba(5, 25, 90, .5));
+}
+#bar .round svg { width: 26px; height: 26px; margin: 0 auto; }
+#bar .round:hover { transform: none; }
+/* the shield: ready = pulses, on = glows cyan, recharging = faded */
 #shield[data-state="off"] { display: none; }
-#shield[data-state="ready"] { animation: shield-ready 1.8s ease-in-out infinite; }
-#shield[data-state="on"] { background: #5cd6ff; box-shadow: 0 0 0 4px rgba(255, 255, 255, .85), 0 0 18px 4px rgba(92, 214, 255, .9); }
-#shield[data-state="cool"] { color: rgba(255, 255, 255, .85); background: conic-gradient(#2f8cf0 calc(var(--fill, 0) * 1%), rgba(30, 50, 110, .55) 0); }
-#shield[data-state="cool"] svg { filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .5)); }
-@keyframes shield-ready { 0%, 100% { box-shadow: 0 0 0 0 rgba(47, 140, 240, .55), var(--shadow); } 50% { box-shadow: 0 0 0 7px rgba(47, 140, 240, 0), var(--shadow); } }
+#shield[data-state="ready"] svg { animation: shield-ready 1.8s ease-in-out infinite; }
+#shield[data-state="on"] { color: #8fe8ff; filter: drop-shadow(1px 0 0 #1b2a6b) drop-shadow(-1px 0 0 #1b2a6b) drop-shadow(0 1px 0 #1b2a6b) drop-shadow(0 -1px 0 #1b2a6b) drop-shadow(0 0 8px rgba(92, 214, 255, .95)); }
+#shield[data-state="cool"] { opacity: .5; }
+@keyframes shield-ready { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.14); } }
