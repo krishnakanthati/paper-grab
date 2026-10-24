@@ -4,7 +4,7 @@
   --row-h: 32px;                 /* one height for every pill, bar and avatar in the HUD */
   --btn: 40px;                   /* round buttons */
   --gap: 10px;
-  --pad: 12px;
+  --pad: clamp(12px, 1.7vmin, 26px);   /* the margin every HUD piece keeps from the screen edge: grows with the window (the small-screen queries below pin it tighter), the same on every side */
   --fs: 14px;
   --safe-t: env(safe-area-inset-top, 0px);
   --safe-r: env(safe-area-inset-right, 0px);
@@ -497,7 +497,7 @@ kbd[aria-label] { display: inline-flex; align-items: center; justify-content: ce
 
 /* ---------- branding on the start panel: a small logo in the top-left corner, the title stays centred ---------- */
 #logo {
-  position: absolute; top: calc(var(--safe-t) + 12px); left: calc(var(--safe-l) + 12px); width: 44px; height: 44px; flex: none; pointer-events: none;
+  position: absolute; top: calc(var(--safe-t) + var(--pad)); left: calc(var(--safe-l) + var(--pad)); width: 44px; height: 44px; flex: none; pointer-events: none;
   filter: drop-shadow(0 3px 12px rgba(12, 180, 255, .55)) drop-shadow(0 2px 4px rgba(0, 0, 0, .3));
   animation: logo-glow 5s ease-in-out infinite alternate;
 }
@@ -640,5 +640,3 @@ kbd[aria-label] { display: inline-flex; align-items: center; justify-content: ce
   #charCol #actions { margin-top: 4px; }
 }
 
-/* fullscreen: the top row sits close to the top edge of the screen, with a small gap */
-:fullscreen #bar, :fullscreen #progress { top: calc(var(--safe-t) + 8px); }

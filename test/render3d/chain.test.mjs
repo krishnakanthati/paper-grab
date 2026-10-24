@@ -171,3 +171,56 @@ test('in the rig a captive is drawn at three quarters of its captor\'s size on w
     }
   }
 });
+
+test('a replay shows the victim\'s own chain following it (held captives hidden, replay chain drawn), then turns it into angels at the hit', () => {
+  const G = game(5); G.startGame();
+  const rig = createRig(G, undefined);
+  const a = G.players[0], k = G.players[1], c3 = G.players[2], c4 = G.players[3];
+  c3.alive = false; c4.alive = false;                                       // already captured and handed to the killer
+  k.captives = [3, 4, 1]; c3.capturedBy = 2; c4.capturedBy = 2; a.capturedBy = 2; a.alive = true;
+  const V = (t) => ({ f: 0.5, dtMs: 16, nowMs: 100000 + t * 16, scale: 30 });
+  rig.holdChains(true); rig.setReplayChain(1, [3, 4]);
+  for (let t = 0; t < 20; t++) rig.update(V(t));
+  const mine = rig.chains.get(1);
+  assert.ok(mine && mine.followers.length === 2, 'your chain follows you in the replay');
+  assert.ok(mine.followers.every(f => f.c.ground.visible), 'and is visible');
+  a.alive = false;                                                           // the hit lands
+  rig.update(V(21));
+  assert.equal(rig.chains.has(1), false);
+  assert.ok(rig.dying() >= 3, 'you and your whole chain turn into angels');
+  rig.dispose();
+});
+
+test('a replay that starts while the live death angels are still playing still shows your chain', () => {
+  const G = game(5); G.startGame();
+  const rig = createRig(G, undefined);
+  const a = G.players[0], k = G.players[1], c3 = G.players[2];
+  a.captives = [3]; const V = (t) => ({ f: 0.5, dtMs: 16, nowMs: 100000 + t * 16, scale: 30 });
+  for (let t = 0; t < 20; t++) rig.update(V(t));
+  c3.alive = false; c3.capturedBy = 1; a.alive = false; a.captives = []; k.captives = [3, 1]; a.capturedBy = 2; c3.capturedBy = 2;     // you die: the live angels start
+  for (let t = 20; t < 40; t++) rig.update(V(t));
+  assert.ok(rig.dying() >= 1);
+  a.alive = true; a.capturedBy = 0;                                         // the replay rewinds you to just before
+  rig.holdChains(true); rig.setReplayChain(1, [3]);
+  for (let t = 40; t < 60; t++) rig.update(V(t));
+  assert.equal(rig.dying(), 0, 'the live angels are cleared');
+  const f = rig.chains.get(1)?.followers ?? [];
+  assert.equal(f.length, 1, 'your chain is standing behind you');
+  assert.ok(f[0].c.ground.visible);
+  rig.dispose();
+});
+
+test('a replay shows both chains: the victim\'s and the attacker\'s own, standing behind their owners', () => {
+  const G = game(5); G.startGame();
+  const rig = createRig(G, undefined);
+  const a = G.players[0], k = G.players[1], c3 = G.players[2], c4 = G.players[3];
+  c3.alive = false; c4.alive = false; c3.capturedBy = 2; c4.capturedBy = 1;
+  k.captives = [3, 1]; a.captives = []; a.alive = true;
+  const V = (t) => ({ f: 0.5, dtMs: 16, nowMs: 100000 + t * 16, scale: 30 });
+  rig.holdChains(true); rig.setReplayChain(1, [4]); rig.setReplayChain(2, [3]);
+  for (let t = 0; t < 20; t++) rig.update(V(t));
+  assert.equal(rig.chains.get(1)?.followers.length, 1, 'the victim\'s chain');
+  assert.equal(rig.chains.get(2)?.followers.length, 1, 'the attacker\'s chain');
+  assert.ok(rig.chains.get(2).followers[0].c.ground.visible);
+  rig.dispose();
+});

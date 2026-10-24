@@ -46,6 +46,7 @@ export function createRig(game: Game, speciesOf?: (id: number) => Species | unde
   const dying = new Map<number, { t0: number; heading: number; at?: readonly [number, number]; size?: number }>();     // characters in the middle of their death animation
   let chainsHeld = false;                                     // a replay rewinds the players but not who captured whom: the captives are hidden for its length rather than shown in the wrong places
   const arms = new Map<number, { dx: number; dz: number; wind: number; rel: number }>();       // who is throwing a star right now: the direction (world) and how far along the throw is
+  const replayChains = new Map<number, number[]>();                       // a replay shows each side's chain (victim's and attacker's) as it was just before the hit, not who holds whom now
   const reseed = new Set<number>();                          // after a replay: these captors' chains are laid out straight behind them (their real path is not what is on screen)
   const chains = new Map<number, Chain>();                    // each captor's path and the captives following it
 
@@ -70,28 +71,28 @@ export function createRig(game: Game, speciesOf?: (id: number) => Species | unde
   const takenBySomeoneElse = (victim: number, captor: number) => { const by = game.players[victim - 1]?.capturedBy ?? 0; return by !== 0 && by !== captor; };
 
   /** Captives follow their captor along the exact path it walked, a little smaller, rippling like a conga line. */
-  function updateChain(p: (typeof game.players)[number], lead: { x: number; y: number; speed: number; phase: number; scale: number }, v: View) {
+  function updateChain(p: (typeof game.players)[number], lead: { x: number; y: number; speed: number; phase: number; scale: number }, v: View, held: number[] = p.captives) {
     const chain = chainOf(p.id);
     chain.trail.push(lead.x, lead.y);
     // members join and leave as the captive list changes
-    for (const vid of p.captives) {
+    for (const vid of held) {
       if (chain.followers.some(f => f.victim === vid && f.leaveAt < 0)) continue;
       const vp = game.players[vid - 1], ve = chars.get(vid);
       if (dying.has(vid) || (ve && ve.wasAlive && vp && !vp.alive)) continue;
       let heldElsewhere = false;                                            // still standing in its old captor's chain: that chain turns it into an angel first, then it can join this one
       for (const [other, och] of chains) if (other !== p.id && och.followers.some(f => f.victim === vid)) heldElsewhere = true;
-      if (heldElsewhere) continue;          // it is still playing its angel death: it joins the chain only once that is over, never drawn in two places at once
+      if (heldElsewhere && !chainsHeld) continue;          // it is still playing its angel death: it joins the chain only once that is over, never drawn in two places at once
       const dead = game.players[vid - 1];
       const c = createCharacter(colorOf(vid), speciesOf?.(vid));
       scene.add(c.ground);
-      chain.followers.push({ victim: vid, c, st: newPoseState(vid), since: v.nowMs, fromX: dead?.x ?? lead.x, fromY: dead?.y ?? lead.y, lastX: dead?.x ?? lead.x, lastY: dead?.y ?? lead.y, heading: 0, leaveAt: -1 });
+      chain.followers.push({ victim: vid, c, st: newPoseState(vid), since: chainsHeld ? v.nowMs - 5000 : v.nowMs, fromX: dead?.x ?? lead.x, fromY: dead?.y ?? lead.y, lastX: dead?.x ?? lead.x, lastY: dead?.y ?? lead.y, heading: 0, leaveAt: -1 });
     }
     for (let k = chain.followers.length - 1; k >= 0; k--) {
       const f = chain.followers[k];
-      if (f.leaveAt >= 0 || p.captives.includes(f.victim)) continue;
+      if (f.leaveAt >= 0 || held.includes(f.victim)) continue;
       if (takenBySomeoneElse(f.victim, p.id)) { chain.followers.splice(k, 1); angelize(f, v); } else f.leaveAt = v.nowMs;     // taken by another captor: angel; just freed: shrinks away
     }
-    chain.trail.trim(captiveDistance(p.captives.length) + CHAIN.historyMargin);
+    chain.trail.trim(captiveDistance(held.length) + CHAIN.historyMargin);
 
     let slot = 0;
     for (let k = chain.followers.length - 1; k >= 0; k--) {
@@ -131,10 +132,12 @@ export function createRig(game: Game, speciesOf?: (id: number) => Species | unde
     setArm(id: number, dx: number, dz: number, wind: number, rel: number) { arms.set(id, { dx, dz, wind, rel }); },
     clearArm(id: number) { arms.delete(id); },
     /** Hide every captive and stop moving them (a replay is showing the past), or bring them back. */
+    setReplayChain(id: number, captives: number[] | null) { if (captives && captives.length) { replayChains.set(id, captives); reseed.add(id); } else replayChains.delete(id); },
     holdChains(on: boolean) {
+      if (!on && chainsHeld) for (const p of game.players) reseed.add(p.id);
       chainsHeld = on;
-      if (!on) for (const p of game.players) reseed.add(p.id);
       if (on) for (const ch of chains.values()) for (const f of ch.followers) f.c.ground.visible = false;
+      if (on) for (const id of dying.keys()) { const e = chars.get(id); if (e) { e.c.setAngel(0, 0); e.c.ground.visible = false; } dying.delete(id); }     // the live death animations (your angel, your chain's angels) are still playing when the replay starts: the replay shows the moment before, so they go, and the chain is allowed to stand in line again
     },
     /** Where this player's hand is on the ground right now (cells), or null. */
     handAt(id: number): readonly [number, number] | null {
@@ -199,12 +202,15 @@ export function createRig(game: Game, speciesOf?: (id: number) => Species | unde
         for (const eye of c.eyes) { eye.scale.z = 1.05 * pose.blink * emo.eyeOpen; eye.scale.x = 0.8 * emo.eyeWide; eye.scale.y = emo.eyeWide; }
         for (const pupil of c.pupils) { pupil.visible = pose.blink > 0.45; pupil.scale.setScalar(emo.pupil); }
         if (c.decor) wiggle(c.decor, st.phase / 3 + v.nowMs / 900, Math.min(1.4, Math.hypot(p.x - p.px, p.y - p.py) * 0.1 * 30 / 8));
-        if (!chainsHeld && reseed.delete(p.id) && p.captives.length) {        // the whole chain stands in a line behind its captor, whatever path the replay rewound it along
-          const ch = chainOf(p.id), t = new Trail(CHAIN.historyStep), len = captiveDistance(p.captives.length) + CHAIN.historyMargin;
+        const lead = { x: pose.x, y: pose.y, speed: Math.min(1, Math.hypot(p.x - p.px, p.y - p.py) / (TICK_MS / 1000) / C.runSpeedRef), phase: st.phase, scale: pose.scale };
+        const shown = chainsHeld ? replayChains.get(p.id) ?? null : p.captives;
+        if (shown && shown.length && reseed.delete(p.id)) {        // the whole chain stands in a line behind its captor, whatever path the replay rewound it along
+          const ch = chainOf(p.id), t = new Trail(CHAIN.historyStep), len = captiveDistance(shown.length) + CHAIN.historyMargin;
           for (let d = len; d > 0; d -= CHAIN.historyStep) t.push(pose.x - Math.cos(pose.heading) * d, pose.y - Math.sin(pose.heading) * d);
           ch.trail = t;
+          if (chainsHeld) for (const f of ch.followers) { f.since = v.nowMs - 5000; f.fromX = f.lastX; f.fromY = f.lastY; }
         }
-        if (!chainsHeld) updateChain(p, { x: pose.x, y: pose.y, speed: Math.min(1, Math.hypot(p.x - p.px, p.y - p.py) / (TICK_MS / 1000) / C.runSpeedRef), phase: st.phase, scale: pose.scale }, v);
+        if (shown) updateChain(p, lead, v, shown);
         c.setCrown(p.id === leader);
         if (p.id === leader) c.crown.position.z = C.crownLift + Math.sin(v.nowMs / 300) * 0.04;
       }

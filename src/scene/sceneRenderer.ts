@@ -89,7 +89,7 @@ export function createSceneRenderer(shell: Shell, overlayHost: HTMLElement, game
     return v;
   };
   // the fatal hit: who did it and whether it was thrown, then (after a beat) the replay itself
-  let fatal: { killer: number; far: boolean; t: number; path: number[]; stars: number } | null = null;
+  let fatal: { killer: number; far: boolean; t: number; path: number[]; stars: number; chain: number[]; killerChain: number[] } | null = null;
   // the human's open line over the last moments: a kill reassigns p.path to [], so the replay redraws it from these (the array object itself survives the kill)
   const pathLog: Array<{ t: number; len: number; path: number[] }> = [];
   const pathLenAt = (t: number, path: number[]) => {
@@ -106,7 +106,7 @@ export function createSceneRenderer(shell: Shell, overlayHost: HTMLElement, game
   const restore = () => {
     if (!replay) return;
     game.players.forEach((p, i) => { const o = replay!.saved[i]; if (o) Object.assign(p, o); });
-    replay = null; tag.classList.remove('on'); overlayHost.classList.remove('replaying'); characters.holdChains(false);
+    replay = null; tag.classList.remove('on'); overlayHost.classList.remove('replaying'); characters.holdChains(false); characters.setReplayChain(1, null); if (fatal?.killer) characters.setReplayChain(fatal.killer, null);
   };
   const begin = (nowMs: number) => {
     if (!fatal || history.length < 2) return;
@@ -116,7 +116,8 @@ export function createSceneRenderer(shell: Shell, overlayHost: HTMLElement, game
       saved: game.players.map(p => ({ x: p.x, y: p.y, px: p.px, py: p.py, angle: p.angle, pa: p.pa, alive: p.alive, path: p.path })),
       buf: new Float32Array(game.players.length * SNAP_STRIDE),
     };
-    characters.holdChains(true);
+    characters.holdChains(true); characters.setReplayChain(1, fatal.chain);      // both chains stand behind their owners through the replay, as they were, until the hit takes the victim's
+    if (fatal.killer) characters.setReplayChain(fatal.killer, fatal.killerChain);
     tag.classList.add('on'); overlayHost.classList.add('replaying');      // the replay is just the scene and the replay mark: every other icon and label is hidden
   };
   const haptic = (pattern: number | number[]) => { try { navigator.vibrate?.(pattern); } catch { /* not allowed (no tap yet) or unsupported */ } };
@@ -135,6 +136,7 @@ export function createSceneRenderer(shell: Shell, overlayHost: HTMLElement, game
     return route;
   };
   const routeLength = (r: number[]) => { let l = 0; for (let i = 2; i < r.length; i += 2) l += Math.hypot(r[i] - r[i - 2], r[i + 1] - r[i - 1]); return l; };
+  const lastCaptives: number[][] = [];                                    // who each player held as of the last frame: a kill hands them to the captor in the same tick
   const lastPath: number[][] = [];                                        // each player's open line as of the last frame: a kill reassigns p.path to [], this array object survives it
   /** Throw star `j` of the volley (0 lands on the hit and carries the impact; the rest land `j` gaps earlier), along the human's own line when there is one. */
   const launchStar = (R: NonNullable<typeof replay>, j: number) => {
@@ -185,7 +187,7 @@ export function createSceneRenderer(shell: Shell, overlayHost: HTMLElement, game
         if (R.r >= REPLAY.ms) restore(); else pose(R);
       } else if (game.running) {
         history.push(nowMs, snapshot(f));
-        for (const q of game.players) lastPath[q.id] = q.path;
+        for (const q of game.players) { lastPath[q.id] = q.path; lastCaptives[q.id] = q.captives.slice(); }
         const mine = game.players[0];
         if (mine) { pathLog.push({ t: nowMs, len: mine.path.length, path: mine.path }); while (pathLog.length > 2 && pathLog[1].t < nowMs - REPLAY.lookBackMs - 400) pathLog.shift(); }
       }
@@ -228,7 +230,7 @@ export function createSceneRenderer(shell: Shell, overlayHost: HTMLElement, game
     killFx(victim, killer) {
       const by = killer && killer !== victim ? killer : null;
       const stars = by && isThrow(Math.hypot(by.x - victim.x, by.y - victim.y)) ? 1 : 1;      // one star per throw; the replay shows the same number
-      if (victim.id === 1) { history.push(performance.now(), snapshot(1), true); fatal = { path: pathLog.length ? pathLog[pathLog.length - 1].path : [], killer: by ? by.id : 0, far: by ? isThrow(Math.hypot(by.x - victim.x, by.y - victim.y)) : false, t: performance.now(), stars }; }   // every end gets a replay, with the plane only when somebody threw it
+      if (victim.id === 1) { history.push(performance.now(), snapshot(1), true); fatal = { path: pathLog.length ? pathLog[pathLog.length - 1].path : [], killer: by ? by.id : 0, far: by ? isThrow(Math.hypot(by.x - victim.x, by.y - victim.y)) : false, t: performance.now(), stars, chain: lastCaptives[victim.id] ?? [], killerChain: by ? lastCaptives[by.id] ?? [] : [] }; }   // every end gets a replay, with the plane only when somebody threw it
       if (!by) { effects.kill(victim); deathFx(victim.x, victim.y, victim.angle, victim.id); return; }
       const strong = by.id === 1, far = Math.hypot(by.x - victim.x, by.y - victim.y), thrown = isThrow(far);
       // the victim stands still until the knife lands, so you can see what hit them; only then do they fly
