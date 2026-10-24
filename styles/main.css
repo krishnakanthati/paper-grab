@@ -645,14 +645,17 @@ kbd[aria-label] { display: inline-flex; align-items: center; justify-content: ce
 #logo { position: static; }
 #brand h1 { flex: none; margin: 0; text-align: left; font-size: clamp(20px, 4.2dvh, 30px); }
 #sub:empty { display: none; }
-#rules { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+#rules { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 5px; }
 #rules[hidden] { display: none; }
 #rules li {
-  display: block; white-space: nowrap; padding: 0; background: none; border: 0; box-shadow: none;
-  font: 800 clamp(13px, 2.4dvh, 18px)/1.25 ui-rounded, 'SF Pro Rounded', 'Nunito', 'Trebuchet MS', 'Segoe UI', system-ui, sans-serif; letter-spacing: .03em;
-  color: #fff; text-shadow: 0 2px 6px rgba(5, 20, 80, .55);
+  display: block; white-space: nowrap; padding: 0; background: none; border: 0; box-shadow: none; transform: rotate(-2deg); transform-origin: right center;
+  font: 900 clamp(17px, 3.2dvh, 26px)/1.2 ui-rounded, 'SF Pro Rounded', 'Baloo 2', 'Nunito', 'Trebuchet MS', 'Segoe UI', system-ui, sans-serif; letter-spacing: .02em;
+  color: var(--rc, #fff); -webkit-text-stroke: .16em #0b1f6b; paint-order: stroke fill; text-shadow: 0 3px 0 rgba(6, 20, 90, .55), 0 6px 14px rgba(0, 10, 60, .45);
 }
-#rules b { margin-right: .45em; font-weight: 900; color: #7ee8fa; }
+#rules li:nth-child(1) { --rc: #ffe14a; }
+#rules li:nth-child(2) { --rc: #5dffb0; }
+#rules li:nth-child(3) { --rc: #ff86b4; }
+#rules b { margin-right: .4em; font-weight: 900; }
 @media (max-height: 470px) { #rules { display: none; } }
 @media (max-width: 700px) { #rules { margin-top: 46px; } }           /* on a phone the rules sit under the title */
 @media (min-width: 701px) {                                          /* elsewhere they take the empty top-right corner, opposite the logo, clear of the globe */
