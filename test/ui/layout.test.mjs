@@ -149,7 +149,7 @@ test('branding: a title, description, icons, manifest and social tags in the pag
   assert.match(rule('#ov > #brand'), /position:\s*absolute/); assert.match(rule('#ov > #brand'), /top:[^;]*safe-t/); assert.match(rule('#ov > #brand'), /left:[^;]*safe-l/);
   assert.match(rule('#logo'), /width:\s*44px/, 'small, in the top-left corner beside the title');
   assert.match(html, /<ol id="rules"/); assert.equal((html.match(/<ol id="rules"[\s\S]*?<\/ol>/)[0].match(/<li>/g) ?? []).length, 3, 'three rules');
-  for (const li of html.match(/<ol id="rules"[\s\S]*?<\/ol>/)[0].match(/<li><b>\d<\/b>([^<]+)<\/li>/g)) assert.ok(li.replace(/<[^>]+>/g, '').replace(/^\d/, '').trim().split(/\s+/).length <= 3, 'each rule is three words at most: ' + li);
+  for (const li of html.match(/<ol id="rules"[\s\S]*?<\/ol>/)[0].match(/<li><b[^>]*>.*?<\/b>([^<]+)<\/li>/g)) assert.ok(li.replace(/<[^>]+>/g, '').trim().split(/\s+/).length <= 3, 'each rule is three words at most: ' + li);
   for (const f of ['logo.svg', 'favicon.svg', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png', 'og-image.png', 'manifest.webmanifest']) assert.ok(fs.existsSync(root + 'public/' + f), `public/${f} is missing`);
   const manifest = JSON.parse(fs.readFileSync(root + 'public/manifest.webmanifest', 'utf8'));
   assert.equal(manifest.name, 'Loopy Land'); assert.ok(manifest.icons.some(i => i.sizes === '512x512'));
