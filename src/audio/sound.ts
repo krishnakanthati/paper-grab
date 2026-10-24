@@ -32,7 +32,7 @@ export interface Sound {
 
 /** Minimum gap (seconds) between two plays of the same cue. */
 /** How often the warning chime repeats while you stay on someone else's land (seconds). */
-const WARNING_EVERY = 1.3;
+const WARNING_EVERY = 2.6;
 const COOLDOWN: Record<string, number> = { leaveHome: 0.12, enemyLand: 0.45, intruder: 0.35, landLost: 0.3, crown: 1, otherCapture: 0.08, otherKill: 0.08 };
 
 export function createSound(): Sound {

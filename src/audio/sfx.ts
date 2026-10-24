@@ -26,10 +26,10 @@ export function createSfx(synth: Synth) {
     enemyLand() {
       if (!ready()) return;
       const t = now();
-      synth.note(synth.sfx(), pitch(79), t, 0.7, 'sine', 0.13, undefined, 0.03);                     // the first note
-      synth.note(synth.sfx(), pitch(79 + 12), t, 0.45, 'sine', 0.03, undefined, 0.04);              // and a faint octave shimmer
-      synth.note(synth.sfx(), pitch(74), t + 0.2, 0.9, 'sine', 0.13, pitch(73), 0.04);              // answered by a lower note that sinks a touch
-      synth.note(synth.sfx(), pitch(62), t, 1.0, 'sine', 0.11, undefined, 0.12);                    // a warm low hum underneath, swelling in slowly
+      synth.note(synth.sfx(), pitch(72), t, 0.7, 'sine', 0.13, undefined, 0.03);                     // the first note
+      synth.note(synth.sfx(), pitch(72 + 12), t, 0.45, 'sine', 0.03, undefined, 0.04);              // and a faint octave shimmer
+      synth.note(synth.sfx(), pitch(67), t + 0.2, 0.9, 'sine', 0.13, pitch(66), 0.04);              // answered by a lower note that sinks a touch
+      synth.note(synth.sfx(), pitch(55), t, 1.0, 'sine', 0.11, undefined, 0.12);                    // a warm low hum underneath, swelling in slowly
     },
     /** Someone else steps onto YOUR land: two quick alert ticks, placed where they are. */
     intruder(pan: number, vol: number) {

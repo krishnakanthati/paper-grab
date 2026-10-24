@@ -194,9 +194,9 @@ test('the warning chime repeats while you stay on someone else\'s land, and stop
   s.warning(true);
   assert.ok(log.osc > before, 'it sounds straight away when nothing else has just played');
   before = log.osc;
-  clock += 0.5; s.warning(true);
+  clock += 1.5; s.warning(true);
   assert.equal(log.osc, before, 'not again straight after');
-  clock += 1; s.warning(true);
+  clock += 1.5; s.warning(true);
   assert.ok(log.osc > before, 'it sounds again once the gap is over, for as long as you stay');
   before = log.osc;
   clock += 5; s.warning(false);
