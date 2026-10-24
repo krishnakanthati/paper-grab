@@ -2,7 +2,7 @@
 // stays upright, floats gently up, and shrinks away at the top. No tumble, no bounce, no lying on the floor. Pure maths of `t`
 // (0 at the moment of death, 1 when it is gone), so it can be tested without a renderer.
 export const DEATH = {
-  ms: 2000,                    // from the hit to gone
+  ms: 1100,                    // from the hit to gone (short: a kill joins the killer's chain as soon as this is over)
   hitShare: 0.08,              // the opening squash lasts this much
   hitSquash: 0.5,              // and flattens it to this share of its height
   angelFrom: 0.03,             // the halo and wings pop out right away...

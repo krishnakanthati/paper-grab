@@ -61,6 +61,12 @@ export function createRig(game: Game, speciesOf?: (id: number) => Species | unde
     return e;
   }
 
+  /** The nearest legal spot for something standing at (x, y): a chain laid out behind a head that hugs a curved coast would otherwise hang out over the sea. */
+  const keepInside = (x: number, y: number, fx: number, fy: number): [number, number] => {
+    if (game.arena.inside(x, y)) return [x, y];
+    for (let i = 0; i < 6; i++) { [x, y] = game.arena.snap(x, y); if (game.arena.inside(x, y)) return [x, y]; }
+    return [fx, fy];                                                    // never found one: stand with the leader
+  };
   const chainOf = (id: number): Chain => { let c = chains.get(id); if (!c) { c = { trail: new Trail(CHAIN.historyStep), followers: [] }; chains.set(id, c); } return c; };
   const freeFollower = (f: Follower) => { scene.remove(f.c.ground); f.c.dispose(); };
   /** A captive whose chain was taken becomes an angel right where it stood (like any other player that is caught); it joins its new captor's chain only once that is over. */
@@ -105,7 +111,7 @@ export function createRig(game: Game, speciesOf?: (id: number) => Species | unde
       if (!leaving) slot++;
       const target = chain.trail.at(captiveDistance(slot - 1));                 // the same positions the rules use for cutting a chain
       const j = easeOutCubic((v.nowMs - f.since) / CHAIN.joinMs);       // glide from where it was caught into its place
-      const x = f.fromX + (target.x - f.fromX) * j, y = f.fromY + (target.y - f.fromY) * j;
+      const [x, y] = keepInside(f.fromX + (target.x - f.fromX) * j, f.fromY + (target.y - f.fromY) * j, lead.x, lead.y);
       f.lastX = x; f.lastY = y;
       const grow = leaving ? Math.max(0, 1 - (v.nowMs - f.leaveAt) / CHAIN.leaveMs) : Math.max(0.0001, easeOutBack((v.nowMs - f.since) / CHAIN.popMs));
       const { c } = f;
@@ -211,7 +217,7 @@ export function createRig(game: Game, speciesOf?: (id: number) => Species | unde
         const shown = chainsHeld ? replayChains.get(p.id) ?? null : p.captives;
         if (shown && shown.length && reseed.delete(p.id)) {        // the whole chain stands in a line behind its captor, whatever path the replay rewound it along
           const ch = chainOf(p.id), t = new Trail(CHAIN.historyStep), len = captiveDistance(shown.length) + CHAIN.historyMargin;
-          for (let d = len; d > 0; d -= CHAIN.historyStep) t.push(pose.x - Math.cos(pose.heading) * d, pose.y - Math.sin(pose.heading) * d);
+          for (let d = len; d > 0; d -= CHAIN.historyStep) t.push(...keepInside(pose.x - Math.cos(pose.heading) * d, pose.y - Math.sin(pose.heading) * d, pose.x, pose.y));
           ch.trail = t;
           if (chainsHeld) for (const f of ch.followers) { f.since = v.nowMs - 5000; f.fromX = f.lastX; f.fromY = f.lastY; }
         }

@@ -35,10 +35,10 @@ export const RIM_WIN = { bandCells: 1.6, minShare: 0.5 };
  * The chain of captives behind a leader is a physical thing on the map: `spacing` cells between neighbours, and a head that
  * comes within `hitRadius` of a captive takes it AND every captive behind it (the ones in front of it are safe).
  */
-export const CAPTIVE_BASE = { spacing: 1.9, firstOffset: 0.95, hitRadius: 1.0 };      // wider than the bodies: at the 50 degree camera pitch an upright captive covers about 1.3 cells of screen depth, so a line of them up the screen needs ~1.7 cells apart (1.2 hid each other)
+export const CAPTIVE_BASE = { spacing: 1.5, firstOffset: 0.8, hitRadius: 1.0 };      // wider than the bodies: at the 50 degree camera pitch an upright captive covers about 1.3 cells of screen depth, so a line of them up the screen needs ~1.7 cells apart (1.2 hid each other)
 export const CAPTIVE = {
-  spacing: 1.9,              // cells between neighbouring captives: well over a captive's width, so none overlap on screen either (see CAPTIVE_BASE)
-  firstOffset: 0.95,           // the first captive sits this much further back than the rest, to clear the leader's own (larger) body
+  spacing: 1.5,              // cells between neighbouring captives: well over a captive's width, so none overlap on screen either (see CAPTIVE_BASE)
+  firstOffset: 0.8,            // the first captive sits this much further back than the rest, to clear the leader's own (larger) body
   hitRadius: 1.0, historyStep: 0.1, historyMargin: 2,
 };
 /**
@@ -130,7 +130,7 @@ export const MIN_LAND_PER_BOT = 300;         // small arenas get fewer bots so t
 export const RESPAWN_TICKS = 60;
 export const REPLAY = {
   startDelayMs: 1500,          // after the hit plays at normal speed, before the replay starts
-  ms: 6200,                    // the replay of the fatal hit (slow through the throw, then the angel finish at normal speed, then the whole captured chain forming) lasts this long (real time)
+  ms: 5000,                    // the replay of the fatal hit (slow through the throw and every star's flight and hit, then the angel finish at normal speed) lasts this long (real time)
   lookBackMs: 500,             // it begins this much game time before the touch
   slowFrom: -150,              // game ms relative to the touch (the moment the opponent reaches your line, when the star is thrown): before this, real speed...
   slowTo: 620,                 // ...a crawl from there through the wind-up, the flight along your line and the landing, until this...

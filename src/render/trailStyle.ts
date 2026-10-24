@@ -11,7 +11,7 @@ const hue = (h: number) => {                           // 0..1 -> a bright rainb
 };
 
 /** Every line is drawn this much thicker than the base widths below (they are in cells, so it holds in every view). */
-export const TRAIL_THICKNESS = 1.25;
+export const TRAIL_THICKNESS = 1.08;
 
 /** `chunk` numbers the stretch of line being drawn, so the rainbow can change along it. */
 export function strokesFor(style: string, col: number, chunk = 0): readonly Stroke[] {

@@ -451,7 +451,7 @@ test('replay history: players are read back blended between records, the old one
   h.push(3050, new Float32Array([0, 0, 0, 0]), true);
   h.sample(3050, out); assert.equal(out[3], 0, 'the final record says dead');
   assert.ok(replaySpeed(-400) > replaySpeed(100) && replaySpeed(100) < replaySpeed(800), 'slowest through the throw (from the touch) and landing, then real time');
-  assert.ok(REPLAY.ms >= 5500 && REPLAY.ms <= 7000, 'about six seconds: the throw in slow motion, the angel finish, then the captured chain forming');
+  assert.ok(REPLAY.ms === 5000, 'five seconds: the star trails and hits in slow motion, then the angel finish');
 });
 test('replay: the victim stays alive from the touch until the star lands, so the angel forms after the hit, not before', async () => {
   const { replayAlive } = await import('../../src/scene/replay.ts');

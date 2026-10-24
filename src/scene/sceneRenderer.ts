@@ -51,7 +51,7 @@ export interface Renderer {
   groundAt(sx: number, sy: number): { x: number; y: number } | null;
 }
 
-const HIT_BUZZ = [70, 35, 160], STAR_BUZZ = 30;      // the killing hit thumps; each earlier star of the volley is a short tick
+const HIT_BUZZ = [70, 35, 160], STAR_BUZZ = [35, 20, 45];      // the killing hit thumps; each earlier star of the volley is a short tick
 
 export function createSceneRenderer(shell: Shell, overlayHost: HTMLElement, game: Game, characters: Characters3D): Renderer {
   const floor = createFloor3D(game);
@@ -154,7 +154,8 @@ export function createSceneRenderer(shell: Shell, overlayHost: HTMLElement, game
     if (!kp) return;
     if (!R.far) { if (j === 0) slash.add(vp.x, vp.y, ka, colorOf(1), true); return; }
     const target = j === 0 ? undefined : R.members[j - 1] ?? [vp.x, vp.y];     // star 0 hits you; every other star hits one member of your chain, once
-    const onLand = () => { haptic(j === 0 ? HIT_BUZZ : STAR_BUZZ); if (j) { camera.kick(0.35); particles.burst(target![0], target![1], colorOf(1), 9, 4, 0.32); return; } camera.kick(1); particles.burst(vp.x, vp.y, 0xffffff, 18, 7, 0.3); particles.burst(vp.x, vp.y, colorOf(R.killer), 14, 5, 0.36); particles.ring(vp.x, vp.y, 0xffffff, 3.2, 520); };
+    haptic(12); camera.kick(0.12);                                        // each star leaves the hand with a tick and a small shake
+    const onLand = () => { haptic(j === 0 ? HIT_BUZZ : STAR_BUZZ); if (j) { camera.kick(0.5); particles.burst(target![0], target![1], colorOf(1), 12, 5, 0.34); particles.ring(target![0], target![1], 0xffffff, 1.8, 380); return; } camera.kick(1); particles.burst(vp.x, vp.y, 0xffffff, 18, 7, 0.3); particles.burst(vp.x, vp.y, colorOf(R.killer), 14, 5, 0.36); particles.ring(vp.x, vp.y, 0xffffff, 3.2, 520); };
     slash.addThrow(kx, ky, target ? target[0] : vp.x, target ? target[1] : vp.y, colorOf(1), true, { flyMs: REPLAY.throwFlyMs, dramatic: true, thrower: R.killer, route: target ? undefined : route, onLand });
   };
   /** Put every player where they were `replay.g` ms from the hit. */

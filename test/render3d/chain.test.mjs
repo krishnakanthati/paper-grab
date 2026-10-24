@@ -72,7 +72,10 @@ test('captives are three quarters of normal size and never overlap, on any scree
   for (const scale of [14, 30, 84]) {                           // the smallest, a typical and the largest pixels-per-cell
     const rig = createRig(G, undefined), me = G.players[0];
     me.captives = [2, 3];
-    for (let t = 0; t < 120; t++) { me.px = me.x; me.py = me.y; me.x += 0.2; rig.update({ f: 0.5, dtMs: 16, nowMs: 100000 + t * 16, scale }); }
+    let way = 0, room = -1;                                      // run the way with the most land ahead: members are kept inside the arena, so a run off the coast would bunch them up
+    for (let k = 0; k < 16; k++) { const ang = (k / 16) * Math.PI * 2; let d = 0; while (d < 60 && G.arena.inside(me.x + Math.cos(ang) * d, me.y + Math.sin(ang) * d)) d += 0.5; if (d > room) { room = d; way = ang; } }
+    const dx = Math.cos(way) * 0.2, dy = Math.sin(way) * 0.2;
+    for (let t = 0; t < 120; t++) { me.px = me.x; me.py = me.y; me.x += dx; me.y += dy; rig.update({ f: 0.5, dtMs: 16, nowMs: 100000 + t * 16, scale }); }
     const lead = rig.chars.get(1).c.ground, [a, b] = rig.chains.get(1).followers.map(f => f.c.ground);
     assert.ok(a.scale.x / lead.scale.x <= 0.75 + 0.02, `a captive is at most 3/4 of its leader's size at ${scale}px per cell`);
     if (scale >= 30) assert.ok(Math.abs(a.scale.x / lead.scale.x - 0.75) < 0.02, 'and exactly 3/4 when not capped');
@@ -142,10 +145,10 @@ test('captives are the same share of the leader\'s size on every screen: a phone
   const webBoost = CH2.sizeBoost, phoneBoost = CH2.sizeBoost * CH2.mobileBoost;
   try {
     layoutChain(false, webBoost);
-    assert.equal(CAPTIVE.spacing, 1.9, 'web keeps its tuned spacing');
+    assert.equal(CAPTIVE.spacing, 1.5, 'web keeps its tuned spacing');
     const web = share(webBoost);
     layoutChain(true, phoneBoost);
-    assert.ok(CAPTIVE.spacing > 1.9 + 0.3, 'the phone chain is spaced wider');
+    assert.ok(CAPTIVE.spacing > 1.5 + 0.3, 'the phone chain is spaced wider');
         const phone = share(phoneBoost);
     assert.ok(Math.abs(phone - CHAIN_SCALE_FOR_TEST) < 0.02 && Math.abs(web - CHAIN_SCALE_FOR_TEST) < 0.02, `both ${CHAIN_SCALE_FOR_TEST} of the leader (web ${web.toFixed(3)}, phone ${phone.toFixed(3)})`);
     const fol = followerPx({ scale: 30, baseScale: 30, boost: phoneBoost }) / 30 * body;
@@ -222,5 +225,22 @@ test('a replay shows both chains: the victim\'s and the attacker\'s own, standin
   assert.equal(rig.chains.get(1)?.followers.length, 1, 'the victim\'s chain');
   assert.equal(rig.chains.get(2)?.followers.length, 1, 'the attacker\'s chain');
   assert.ok(rig.chains.get(2).followers[0].c.ground.visible);
+  rig.dispose();
+});
+
+test('chain members never stand outside the arena, even when laid out behind a head hugging a coast', () => {
+  const G = game(5); G.startGame();
+  const rig = createRig(G, undefined);
+  const a = G.players[0];
+  let best = 0, bd = 1e9;                                                     // walk to the coast and face inland, so "straight behind" points out to sea
+  for (let k = 0; k < 16; k++) { const ang = (k / 16) * Math.PI * 2; let d = 0; while (d < 400 && G.arena.inside(a.x + Math.cos(ang) * d, a.y + Math.sin(ang) * d)) d += 0.5; if (d < bd) { bd = d; best = ang; } }
+  a.x = a.px = a.x + Math.cos(best) * (bd - 1); a.y = a.py = a.y + Math.sin(best) * (bd - 1); a.angle = a.pa = best + Math.PI;
+  for (const id of [3, 4, 5, 6]) { G.players[id - 1].alive = false; G.players[id - 1].capturedBy = 2; }
+  const V = (t) => ({ f: 1, dtMs: 16, nowMs: 100000 + t * 16, scale: 30 });
+  rig.holdChains(true); rig.setReplayChain(1, [3, 4, 5, 6]);
+  for (let t = 0; t < 30; t++) rig.update(V(t));
+  const fs = rig.chains.get(1).followers;
+  assert.equal(fs.length, 4);
+  for (const f of fs) assert.ok(G.arena.inside(f.lastX, f.lastY), `a member stands at ${f.lastX.toFixed(1)}, ${f.lastY.toFixed(1)}, outside the arena`);
   rig.dispose();
 });
