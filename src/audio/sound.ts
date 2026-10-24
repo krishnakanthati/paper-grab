@@ -31,7 +31,7 @@ export interface Sound {
 }
 
 /** Minimum gap (seconds) between two plays of the same cue. */
-const COOLDOWN: Record<string, number> = { leaveHome: 0.12, enemyLand: 0.25, intruder: 0.35, landLost: 0.3, crown: 1, otherCapture: 0.08, otherKill: 0.08, beaconSpawn: 0.5, powerup: 0.15 };
+const COOLDOWN: Record<string, number> = { leaveHome: 0.12, enemyLand: 0.45, intruder: 0.35, landLost: 0.3, crown: 1, otherCapture: 0.08, otherKill: 0.08, beaconSpawn: 0.5, powerup: 0.15 };
 
 export function createSound(): Sound {
   const synth = createSynth();
