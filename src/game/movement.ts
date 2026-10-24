@@ -9,7 +9,7 @@ import type { Ctx, Player } from './types.ts';
 /** How far past the hugging depth a head may be and still count as being on the coast (cells). */
 const STICK_BAND = 0.35;
 /** How far (radians) the steering must swing from the heading held at the coast before the head leaves it. */
-const RELEASE_TURN = 1.2;
+const RELEASE_TURN = 0.8;
 
 export const wrapAngle = (a: number) => {
   while (a > Math.PI) a -= 2 * Math.PI;
