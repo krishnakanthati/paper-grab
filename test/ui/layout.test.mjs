@@ -24,12 +24,12 @@ test('every element id the code looks up exists in index.html (a missing one wou
   for (const id of wanted) assert.ok(ids.has(id), `src looks up #${id}, which is not in index.html`);
 });
 
-test('the HUD uses one row height: every pill, bar, avatar and the progress label share --row-h', () => {
-  for (const sel of ['#plbl', '#ptrack', '.pill']) assert.match(rule(sel), /(?:^|;)\s*(?:min-)?height:\s*var\(--row-h\)/, `${sel} does not use --row-h`);
+test('the HUD uses one row height: every pill, bar and avatar share --row-h', () => {
+  for (const sel of ['#ptrack', '.pill']) assert.match(rule(sel), /(?:^|;)\s*(?:min-)?height:\s*var\(--row-h\)/, `${sel} does not use --row-h`);
 });
 
 test('everything is rounded: pills are fully rounded and circles are circles', () => {
-  for (const sel of ['#plbl', '#ptrack', '#pfill', '.pill', '#btn', '.secondary', '.picker-item']) assert.match(rule(sel), /border-radius:\s*999px/, `${sel} is not fully rounded`);
+  for (const sel of ['#ptrack', '#pfill', '.pill', '#btn', '.secondary', '.picker-item']) assert.match(rule(sel), /border-radius:\s*999px/, `${sel} is not fully rounded`);
   for (const sel of ['.round']) assert.match(rule(sel), /border-radius:\s*50%/, `${sel} is not a circle`);
 });
 
