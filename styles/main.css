@@ -676,3 +676,4 @@ kbd[aria-label] { display: inline-flex; align-items: center; justify-content: ce
 #shield[data-state="on"] { color: #8fe8ff; filter: drop-shadow(1px 0 0 #1b2a6b) drop-shadow(-1px 0 0 #1b2a6b) drop-shadow(0 1px 0 #1b2a6b) drop-shadow(0 -1px 0 #1b2a6b) drop-shadow(0 0 8px rgba(92, 214, 255, .95)); }
 #shield[data-state="cool"] { opacity: .5; }
 @keyframes shield-ready { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.14); } }
+#bar #kills svg { width: 32px; height: 32px; }                         /* the skull's drawing has more empty margin than the shield's, so it needs a bigger box to look the same size */
