@@ -11,7 +11,7 @@ export function createProgress(game: Game) {
       const pct = me ? (game.counts[1] / game.landCount) * 100 : 0;
       const text = Math.max(1, Math.round(pct)) + '%';
       if (text !== lastPct) { lastPct = text; lbl.textContent = text; fill.style.width = `calc(14px + (100% - 14px) * ${Math.max(0, Math.min(100, pct)) / 100})`; }
-      const k = me?.kills ?? 0;
+      const k = me?.captives.length ?? 0;                               // the players held in your chain right now
       if (k !== lastKills) { lastKills = k; kills.textContent = String(k); }
     },
   };

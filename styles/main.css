@@ -59,6 +59,8 @@ button { font: inherit; }
   background: var(--glass); box-shadow: var(--shadow); color: var(--ink); font-weight: 800; pointer-events: none;
 }
 #kills { position: static; }                       /* it is the first item of the #bar row now */
+#bar #kills { background: none; box-shadow: none; border: 0; padding: 0 4px; gap: 5px; color: #fff; filter: drop-shadow(0 1px 3px rgba(5, 25, 90, .55)); }       /* just a skull and a number: no box */
+#kills b { font-size: 1.15em; font-weight: 900; -webkit-text-stroke: 3px #1b2a6b; paint-order: stroke fill; }
 
 /* ---------- round buttons (pause, sound) ---------- */
 #bar { position: absolute; top: calc(var(--safe-t) + var(--pad)); left: calc(var(--safe-l) + var(--pad)); display: flex; flex-flow: row nowrap; align-items: center; gap: var(--gap); }
