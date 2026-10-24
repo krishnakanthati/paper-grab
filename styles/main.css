@@ -640,3 +640,16 @@ kbd[aria-label] { display: inline-flex; align-items: center; justify-content: ce
   #charCol #actions { margin-top: 4px; }
 }
 
+
+/* the rare jump scare (src/ui/jumpScare.ts) */
+#scare { position: absolute; inset: 0; z-index: 50; display: grid; place-items: center; pointer-events: none; background: #000; overflow: hidden; }
+#scare[hidden] { display: none; }
+#scare svg { width: min(120vmin, 1100px); height: auto; }
+#scare.go { animation: scare-flash 650ms steps(2, end) both; }
+#scare.go svg { animation: scare-lunge 650ms cubic-bezier(.1, .9, .2, 1) both, scare-shake 90ms linear 4; }
+#scare.go.calm, #scare.go.calm svg { animation: scare-fade 650ms ease-out both; }
+@keyframes scare-flash { 0% { background: #fff; } 12% { background: #7a0000; } 100% { background: #000; } }
+#scare { box-shadow: inset 0 0 30vmin color-mix(in srgb, var(--scare, #f00) 70%, #000); }
+@keyframes scare-lunge { 0% { transform: scale(.15); } 18% { transform: scale(1.1); } 100% { transform: scale(1.35); } }
+@keyframes scare-shake { 0%, 100% { translate: 0 0; } 25% { translate: -2.5vmin 1.5vmin; } 75% { translate: 2.5vmin -1.5vmin; } }
+@keyframes scare-fade { 0% { opacity: 0; } 30% { opacity: .8; } 100% { opacity: 0; } }
