@@ -70,7 +70,7 @@ const CAST: Species[] = [
     ears: { kind: 'round', color: 0x8a5a36, inner: 0xd9b48a }, nose: 0x2f2a2e,
     patches: [{ at: [0.47, 0, 0.34], size: [0.06, 0.4, 0.24], color: 0xe3c29a }],       // a pale muzzle
     tail: { kind: 'puff', color: 0x8a5a36 },
-    details: [{ kind: 'bowtie', color: 0x3b82f6 }],
+    details: [],
   },
   {
     id: 'koala', mouth: 'flat', name: 'koala', body: 0xb9bec9, cheek: 0xffb3c1,
@@ -93,7 +93,7 @@ const CAST: Species[] = [
       { at: [-0.12, 0.0, 0.975], size: [0.4, 0.1, 0.05], color: 0xf08a1c },
     ],
     tail: { kind: 'long', color: 0xffb34d },
-    details: [{ kind: 'whiskers', color: 0x5a3a2a }, { kind: 'collar', color: 0xe5484d, bell: true }],
+    details: [{ kind: 'whiskers', color: 0x5a3a2a }],
   },
   {
     id: 'piglet', name: 'piglet', body: 0xffb8c8, cheek: 0xff8fa8,
@@ -122,7 +122,7 @@ const CAST: Species[] = [
     ears: { kind: 'floppy', color: 0xb97f4a },
     patches: [{ at: [0.0, -0.22, 0.975], size: [0.34, 0.3, 0.05], color: 0xb97f4a }],
     tail: { kind: 'long', color: 0xf3d9a6 },
-    details: [{ kind: 'tongue', color: 0xff7f9f }, { kind: 'collar', color: 0x3b82f6 }],
+    details: [{ kind: 'tongue', color: 0xff7f9f }],
   },
   {
     id: 'foxy', mouth: 'smirk', name: 'foxy', body: 0xff8a3d, cheek: 0xffb0a0, nose: 0x2f2a2e,
@@ -168,7 +168,7 @@ const CAST: Species[] = [
     id: 'penguin', name: 'penguin', body: 0x35405c, cheek: 0xff9fa8, beak: 0xffa31f, wings: 0x2a3350,
     ears: { kind: 'none', color: 0x35405c },
     patches: [{ at: [0.47, 0, 0.46], size: [0.06, 0.5, 0.4], color: 0xf7f9ff }],
-    details: [{ kind: 'scarf', color: 0xe5484d }],
+    details: [],
   },
   {
     id: 'rhino', name: 'rhino', body: 0x9a97a8, cheek: 0xffb3c1, noseHorn: 0xf3e6cf,
