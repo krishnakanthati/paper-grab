@@ -1,7 +1,7 @@
 // Composes the layers of one arena into the shell's single scene and draws a frame. This is the part the rest of the game talks to: it
 // follows the player with the camera controller, rebuilds what changed, interpolates everything between 30 Hz logic ticks, and turns game
 // events into effects. Each layer lives in its own module.
-import { CAMERA, REPLAY } from '../config.ts';
+import { CAMERA, REPLAY, nameOf } from '../config.ts';
 import type { Game, Player } from '../game/index.ts';
 import { DEATH, deathPose } from '../render3d/death.ts';
 import { createCameraController } from '../render/cameraController.ts';
@@ -104,6 +104,7 @@ export function createSceneRenderer(shell: Shell, overlayHost: HTMLElement, game
     game.players.forEach((p, i) => { const o = replay!.saved[i]; if (o) Object.assign(p, o); });
     replay = null; tag.classList.remove('on'); overlayHost.classList.remove('replaying'); characters.holdChains(false); characters.setReplayChain(1, null); if (fatal?.killer) characters.setReplayChain(fatal.killer, null);
   };
+  let nextPing = 0;                                                       // replay time (ms) of the next pulse around whoever got you
   const begin = (nowMs: number) => {
     if (!fatal || history.length < 2) return;
     slash.clear();
@@ -114,6 +115,8 @@ export function createSceneRenderer(shell: Shell, overlayHost: HTMLElement, game
     };
     characters.holdChains(true); characters.setReplayChain(1, fatal.chain);      // both chains stand behind their owners through the replay, as they were, until the hit takes the victim's
     if (fatal.killer) characters.setReplayChain(fatal.killer, fatal.killerChain);
+    tag.textContent = fatal.killer ? 'replay · ' + nameOf(fatal.killer).toLowerCase() : 'replay';      // who did it, so the replay explains the end even when they are hard to spot
+    nextPing = 0;
     tag.classList.add('on'); overlayHost.classList.add('replaying');      // the replay is just the scene and the replay mark: every other icon and label is hidden
   };
   const haptic = (pattern: number | number[]) => { try { navigator.vibrate?.(pattern); } catch { /* not allowed (no tap yet) or unsupported */ } };
@@ -204,7 +207,12 @@ export function createSceneRenderer(shell: Shell, overlayHost: HTMLElement, game
           else if (R.route && R.g < W0 + F) [fx, fy] = pointAlong(R.route.pts, R.route.cum, throwProgress((R.g - W0) / F));   // the flight: along your line
         }
         const d = thrower ? Math.hypot(thrower.x - mx, thrower.y - my) : 0;
-        frame = { x: fx, y: fy, minView: thrower ? Math.min(CAMERA.baseView * 2.2, d * 0.8 + 12) : undefined, followMs: 140 };
+        frame = { x: fx, y: fy, minView: thrower ? Math.max(CAMERA.baseView * 1.15, Math.min(CAMERA.baseView * 2.2, d * 0.8 + 12)) : undefined, followMs: 140 };
+        if (thrower && !R.far && R.r >= nextPing && R.g < R.landG + 700) {       // a close hit: pulse rings round whoever got you, so they cannot be missed even when they stand right on top of you
+          nextPing = R.r + 520;
+          particles.ring(thrower.x, thrower.y, colorOf(R.killer), 3.4, 760);
+          particles.ring(thrower.x, thrower.y, 0xffffff, 1.9, 520);
+        }
       } else if (me && me.alive) frame = { x: me.px + (me.x - me.px) * rf, y: me.py + (me.y - me.py) * rf };
       camera.update(me && frame ? {
         x: frame.x, y: frame.y, angle: me.angle, minView: frame.minView, followMs: frame.followMs,
