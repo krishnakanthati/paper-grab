@@ -48,7 +48,7 @@ export function createEffects(game: Game, particles: ParticleSink, camera: Shake
       particles.ring(x, y, WHITE, 3.4, 420);
       particles.ring(x, y, lighten(ca, 0.45), 2.4, 560);
       const mine = a.id === 1 || b.id === 1;
-      const strength = mine ? 0.95 : clamp(1 - distanceFromMe(x, y) / EFFECTS.kickFarCells, 0, 1) * EFFECTS.kickOthers;
+      const strength = mine ? 1 : clamp(1 - distanceFromMe(x, y) / EFFECTS.kickFarCells, 0, 1) * EFFECTS.kickOthers * 1.4;
       if (strength > 0) camera.kick(strength);
     },
     win() {
