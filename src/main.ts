@@ -29,10 +29,23 @@ import { bindPauseButton } from './ui/pauseButton.ts';
 import { showFirstRoundHint } from './ui/hint.ts';
 
 
+/** keeps --app-h at the height the player can really see: on phones (fullscreen, address bar and gesture bar coming and going) 100dvh can be taller than the visible page and cut off the bottom controls */
+function trackVisibleHeight() {
+  const set = () => {
+    const h = Math.round(Math.min(window.innerHeight, window.visualViewport?.height ?? Infinity));
+    if (h > 0) document.documentElement.style.setProperty('--app-h', h + 'px');
+  };
+  set();
+  for (const ev of ['resize', 'orientationchange', 'fullscreenchange', 'webkitfullscreenchange']) window.addEventListener(ev, set);
+  document.addEventListener('fullscreenchange', set);
+  window.visualViewport?.addEventListener('resize', set);
+}
+
 async function main() {
   document.documentElement.classList.add('theme-' + THEME.name);          // lets the stylesheet colour the panels to match
   layoutChain(isTouchScreen(), characterBoost());      // bigger characters (phones) get a proportionally longer chain spacing, so captives are the same share of the leader's size everywhere
   fullscreenOnFirstGesture();
+  trackVisibleHeight();
   setPlayerColor(Math.floor(Math.random() * COLORS.length));          // you are not always red: a different colour each visit
   await initStorage();                                       // saved choices (character, country) are read before anything uses them
   const overlay = createOverlay();
