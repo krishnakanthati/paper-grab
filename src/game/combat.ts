@@ -24,7 +24,7 @@ export function holdCaptives(g: Ctx, captor: Player, ids: number[]) {
 
 export function kill(g: Ctx, p: Player, killer: Player | null, reason: string) {
   if (!p.alive) return;
-  if (p.shield > 0 && killer && killer !== p) return;      // a shield: nobody else can catch, cut or crash into this player
+  if ((p.shield > 0 || p.dash > 0) && killer && killer !== p) return;      // a shield: nobody else can catch, cut or crash into this player
   p.alive = false;
   const captor = killer && killer !== p && killer.alive ? killer : null;
   if (killer && killer !== p) killer.kills++;

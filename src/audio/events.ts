@@ -10,7 +10,7 @@ const AUDIBLE = 0.05;
 
 /** The audio half of the game's events. `game` is a getter because the game is created with these handlers. */
 export function gameSounds(sound: Sound, game: () => Game): Required<Pick<GameEvents,
-  'onCapture' | 'onKill' | 'onShield' | 'onLeaveHome' | 'onEnterEnemyLand' | 'onLandLost' | 'onLeader' | 'onMilestone' | 'onWin'>> {
+  'onCapture' | 'onKill' | 'onShield' | 'onDash' | 'onLeaveHome' | 'onEnterEnemyLand' | 'onLandLost' | 'onLeader' | 'onMilestone' | 'onWin'>> {
   return {
     onCapture(p, claimed) {
       if (p.id === 1) { sound.capture(claimed.length); return; }
@@ -42,6 +42,7 @@ export function gameSounds(sound: Sound, game: () => Game): Required<Pick<GameEv
     onLandLost(victim: Player) { if (victim.id === 1) sound.landLost(); },
     onLeader(leaderId: number) { if (leaderId === 1) sound.crown(); },
     onMilestone(index: number) { sound.milestone(index); },
+    onDash(p) { if (p.id === 1) sound.dash(); },
     onShield(p) { if (p.id === 1) sound.shield(); },
     onWin() { sound.win(); },
   };

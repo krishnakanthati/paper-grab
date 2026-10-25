@@ -11,7 +11,7 @@ import type { FlipKind } from './render3d/pose.ts';
 import type { Characters3D } from './render3d/index.ts';
 import { speciesOfPlayer } from './ui/characters/store.ts';
 import { $ } from './ui/dom.ts';
-import { createShieldHud } from './ui/shieldHud.ts';
+import { createShieldHud, createDashHud } from './ui/shieldHud.ts';
 import { createMinimap } from './ui/minimap.ts';
 import { createProgress } from './ui/progress.ts';
 
@@ -44,6 +44,7 @@ export function createSession(o: SessionOptions): Session {
     ...audio,
     onCapture: (p, claimed, takenFrom) => { renderer.captureFx(p, claimed, takenFrom); audio.onCapture(p, claimed); },
     onChainCut: (_from, by, ids) => { renderer.captureFx(by, []); audio.onCapture(by, ids); },      // the same ring and chime as a grab
+    onDash: p => { renderer.dashFx(p); audio.onDash(p); },
     onShield: p => { renderer.shieldFx(p); audio.onShield(p); },
     onClear: (victim, cells) => renderer.clearFx(victim, cells),
     onKill: (victim, killer, reason) => { renderer.killFx(victim, killer, reason); audio.onKill(victim, killer, reason); },
@@ -56,9 +57,9 @@ export function createSession(o: SessionOptions): Session {
   document.body.style.background = OCEAN_TOP;
 
   const progress = createProgress(game);
-  const shieldHud = createShieldHud(game, $('shield'));
+  const shieldHud = createShieldHud(game, $('shield')), dashHud = createDashHud(game, $('dash'));
   const minimap = createMinimap(game, $<HTMLCanvasElement>('mini'));
-  const refreshUi = () => { progress.update(); shieldHud.update(); minimap.draw(); };
+  const refreshUi = () => { progress.update(); shieldHud.update(); dashHud.update(); minimap.draw(); };
   refreshUi();
 
   return {

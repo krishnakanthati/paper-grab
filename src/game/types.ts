@@ -29,6 +29,7 @@ export interface Player {
   respawnIn: number;
   capturedBy: number;            // id of the player holding this one in its chain (0 = free). A captured player does not respawn until it is released
   // bot planning state
+  dash: number; dashCool: number;       // ticks left of the speed burst, and until it can be used again (0 = off / ready)
   shield: number; shieldCool: number;   // ticks left of the safe-zone shield, and until it can be switched on again (0 = off / ready)
   returning: boolean; edgeRun: boolean; phase: number; leg: number; leg2: number; turnSign: number; thinkIn: number;
 }
@@ -39,6 +40,7 @@ export interface GameEvents {
   /** `p` claimed these cells. `takenFrom` says which of them used to belong to whom (the rest were nobody's), so the renderer can blend old colour into new. */
   onCapture?(p: Player, claimed: number[], takenFrom?: Map<number, number[]>): void;
   onKill?(victim: Player, killer: Player | null, reason: string): void;
+  onDash?(p: Player): void;                              // a player started a dash
   onShield?(p: Player): void;                            // a player switched their safe-zone shield on
   onChainCut?(from: Player, by: Player, ids: number[]): void;         // `by` touched `from`'s chain and took these captives (and all behind them)
   onClear?(victim: Player, cells: number[]): void;                     // a player died with no captor: this land went back to nobody
@@ -98,6 +100,7 @@ export interface Game {
   setTarget(angle: number): void;   // steer the human towards a heading (radians)
   setDir(d: number): void;          // 0 up, 1 right, 2 down, 3 left
   leaderId(): number;               // id of the player with the most land (wears the crown), 0 if none
+  useDash(): boolean;               // the human dashes, if it is ready
   useShield(): boolean;             // the human switches the safe-zone shield on, if it is ready
 }
 

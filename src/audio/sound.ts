@@ -27,6 +27,7 @@ export interface Sound {
   milestone(index: number): void;
   otherCapture(claimed: number, pan: number, vol: number): void;   // pan -1..1, vol 0..1 from distance
   otherKill(pan: number, vol: number): void;
+  dash(): void;                           // your dash starts
   shield(): void;                         // your safe-zone shield comes on
 }
 
@@ -78,6 +79,6 @@ export function createSound(): Sound {
     intruder: throttled('intruder', sfx.intruder), landLost: throttled('landLost', sfx.landLost),
     crown: throttled('crown', sfx.crown), milestone: sfx.milestone,
     otherCapture: throttled('otherCapture', sfx.otherCapture), otherKill: throttled('otherKill', sfx.otherKill),
-    shield: sfx.shield,
+    shield: sfx.shield, dash: sfx.dash,
   };
 }

@@ -116,6 +116,14 @@ export function createSfx(synth: Synth) {
       synth.note(bus, 260, t, 0.16, 'triangle', 0.09, 80);
       synth.note(bus, pitch(72), t + 0.05, 0.25, 'triangle', 0.13);
     },
+    /** Your dash: a quick rising whoosh. */
+    dash() {
+      if (!ready()) return;
+      const t = now();
+      synth.note(synth.sfx(), 220, t, 0.22, 'triangle', 0.06, 880);
+      synth.note(synth.sfx(), 520, t + 0.02, 0.18, 'triangle', 0.07, 1200);
+      synth.note(synth.sfx(), pitch(60), t, 0.2, 'sine', 0.1, pitch(72));
+    },
     /** Your safe-zone shield comes on: a soft rising shimmer that settles into a calm, bright hum. */
     shield() {
       if (!ready()) return;

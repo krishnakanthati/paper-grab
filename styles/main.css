@@ -680,6 +680,10 @@ kbd[aria-label] { display: inline-flex; align-items: center; justify-content: ce
 #shield { margin-left: 6px; }                                         /* the shield's drawing has less empty margin than the skull's number end, so this evens out the visible gaps */
 #bar .round:hover { transform: none; }
 /* the shield: ready = pulses, on = glows cyan, recharging = faded */
+#dash[data-state="off"] { display: none; }
+#dash[data-state="ready"] svg { animation: shield-ready 1.8s ease-in-out infinite; }
+#dash[data-state="on"] { color: #ffd45c; filter: drop-shadow(1px 0 0 #1b2a6b) drop-shadow(-1px 0 0 #1b2a6b) drop-shadow(0 1px 0 #1b2a6b) drop-shadow(0 -1px 0 #1b2a6b) drop-shadow(0 0 8px rgba(255, 200, 70, .95)); }
+#dash[data-state="cool"] { opacity: .5; }
 #shield[data-state="off"] { display: none; }
 #shield[data-state="ready"] svg { animation: shield-ready 1.8s ease-in-out infinite; }
 #shield[data-state="on"] { color: #8fe8ff; filter: drop-shadow(1px 0 0 #1b2a6b) drop-shadow(-1px 0 0 #1b2a6b) drop-shadow(0 1px 0 #1b2a6b) drop-shadow(0 -1px 0 #1b2a6b) drop-shadow(0 0 8px rgba(92, 214, 255, .95)); }

@@ -33,7 +33,7 @@ export function spawn(g: Ctx, p: Player): boolean {
   p.angle = p.target = p.pa = g.random() * Math.PI * 2 - Math.PI;
   p.inOwner = p.id;
   p.trail = []; p.path = []; p.captives = []; p.capturedBy = 0; for (const q of g.players) if (q.captives.includes(p.id)) q.captives = q.captives.filter(id => id !== p.id); p.walk.reset(); p.walk.push(p.x, p.y); p.alive = true; p.blocked = false; p.slide = 1; p.slideLock = 0; p.slideIntent = 0; p.stuckIntent = 0; p.stuck = false; p.trailStartTick = Infinity;
-  p.shield = p.shieldCool = 0; p.returning = false; p.edgeRun = false; p.phase = 0; p.thinkIn = 0;
+  p.shield = p.shieldCool = 0; p.dash = p.dashCool = 0; p.returning = false; p.edgeRun = false; p.phase = 0; p.thinkIn = 0;
   p.leg = 8 + Math.floor(g.random() * 10); p.leg2 = 6 + Math.floor(g.random() * 8); p.turnSign = g.random() < 0.5 ? -1 : 1;
   const r = Math.ceil(START_RADIUS);
   for (let dy = -r; dy <= r; dy++)
@@ -47,6 +47,6 @@ export function newPlayer(id: number): Player {
   return {
     id, isBot: id > 1, alive: false, x: 0, y: 0, px: 0, py: 0, angle: 0, pa: 0, inOwner: 0, kills: 0, walk: new Trail(CAPTIVE.historyStep), captives: [], target: 0, trail: [], path: [],
     trailStartTick: Infinity, blocked: false, slide: 1, slideLock: 0, slideIntent: 0, stuckIntent: 0, stuck: false, respawnIn: 0, capturedBy: 0,
-    shield: 0, shieldCool: 0, returning: false, edgeRun: false, phase: 0, leg: 10, leg2: 8, turnSign: 1, thinkIn: 0,
+    shield: 0, shieldCool: 0, dash: 0, dashCool: 0, returning: false, edgeRun: false, phase: 0, leg: 10, leg2: 8, turnSign: 1, thinkIn: 0,
   };
 }

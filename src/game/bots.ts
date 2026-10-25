@@ -17,7 +17,7 @@ export function nearestOnPath(path: number[], x: number, y: number, skip = 0): {
 }
 
 /** Can this rival be hurt (or hurt us)? Not out, held captive, or shielded (nobody can cut or catch a shielded player). */
-const exposed = (q: Player) => q.alive && !q.capturedBy && q.shield <= 0;
+const exposed = (q: Player) => q.alive && !q.capturedBy && q.shield <= 0 && q.dash <= 0;
 
 /** Is some rival about to cut our open line? Its head is close to the line, or to the spot it reaches a moment from now. */
 export function lineThreatened(g: Ctx, p: Player): boolean {

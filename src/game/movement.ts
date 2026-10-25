@@ -1,5 +1,5 @@
 // One tick of motion for one player: steer, move, glide along the rim, and report cells entered.
-import { EDGE_RELEASE, EDGE_SPEED_MULT, SPEED, TICK_HZ, TURN_RATE } from '../config.ts';
+import { DASH, EDGE_RELEASE, EDGE_SPEED_MULT, SPEED, TICK_HZ, TURN_RATE } from '../config.ts';
 import { HEAD_DEPTH } from './arena.ts';
 import { idx } from './arena.ts';
 import { thinkBot } from './bots.ts';
@@ -28,7 +28,7 @@ export function stepPlayer(g: Ctx, p: Player) {
 
   const lastDx = p.x - p.px, lastDy = p.y - p.py;        // how we actually moved last tick (used to keep sliding the same way)
   p.px = p.x; p.py = p.y;
-  const speed = SPEED;
+  const speed = p.dash > 0 ? SPEED * DASH.speedMult : SPEED;
   let nx = p.x + Math.cos(p.angle) * speed * dt, ny = p.y + Math.sin(p.angle) * speed * dt;
   p.blocked = false;
   // Once on the coast you STAY on it (following it round every bend) until you deliberately steer inland: the heading

@@ -69,6 +69,17 @@ export const SHIELD = {
   cooldownTicks: 30 * 18,      // from the moment it is switched on until it can be used again
 };
 
+/**
+ * Your dash: press it (Q, or the dash button) for a short burst of speed. While it lasts nobody can catch, cut or crash into you
+ * (a blink of invincibility), so you can slip through a rival's line or out of a crash. Then it needs a few seconds to recharge.
+ * Computer players do not use it.
+ */
+export const DASH = {
+  ticks: 12,                   // how long it lasts (0.4 s)
+  speedMult: 2.2,              // times normal speed: still under a cell per tick, so no cell is ever skipped
+  cooldownTicks: 30 * 5,       // from the moment it starts until it can be used again
+};
+
 /** Captured players who follow their captor in a chain: at most this many at once (the oldest is let go beyond it). */
 export const CAPTIVES_MAX = 10;
 /** Some computer-player loops head for the coast and run along it, so they reach the edge of the map like a person does. */

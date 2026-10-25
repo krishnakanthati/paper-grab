@@ -29,6 +29,7 @@ export interface Renderer {
   /** A player died with no captor: their land dissolves from where they fell instead of vanishing. */
   clearFx(victim: Player, cells: number[]): void;
   /** A player switched their safe-zone shield on: a ring and a burst of sparkles. */
+  dashFx(p: Player): void;
   shieldFx(p: Player): void;
   /** `killer` is who took them out (null for an accident): a plane slash plays when there is one. */
   killFx(victim: Player, killer?: Player | null, reason?: string): void;
@@ -264,6 +265,12 @@ export function createSceneRenderer(shell: Shell, overlayHost: HTMLElement, game
     replayFx() { if (fatal && !replay) pending = { startAt: performance.now() + REPLAY.startDelayMs }; },
     replayMs: () => (fatal ? REPLAY.startDelayMs + REPLAY.ms + REPLAY.afterMs : 0),
     animating: () => pending !== null || replay !== null,
+    dashFx(p) {
+      const bx = p.x - Math.cos(p.angle) * 0.6, by = p.y - Math.sin(p.angle) * 0.6;
+      particles.burst(bx, by, 0xffffff, 10, 6, 0.28); particles.burst(bx, by, colorOf(p.id), 8, 4, 0.34);
+      particles.ring(bx, by, 0xffd45c, 2.2, 480);
+      if (p.id === 1) { haptic(25); camera.kick(0.2); }
+    },
     shieldFx(p) {
       floats.pop('shield on', p);
       particles.ring(p.x, p.y, 0x3aa0ff, 2.4, 700); particles.ring(p.x, p.y, 0xffffff, 1.5, 450);

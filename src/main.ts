@@ -129,12 +129,18 @@ async function main() {
     if (!session || overlay.visible() || userPaused || ytPaused || hidden) return;
     if (session.game.useShield()) session.refreshUi();
   }
+  function useDash() {
+    if (!session || overlay.visible() || userPaused || ytPaused || hidden) return;
+    if (session.game.useDash()) session.refreshUi();
+  }
+  $('dash').addEventListener('click', e => { e.stopPropagation(); (e.currentTarget as HTMLElement).blur(); useDash(); });
   $('shield').addEventListener('click', e => { e.stopPropagation(); (e.currentTarget as HTMLElement).blur(); useShield(); });
   const input = bindInput(() => session!.game, {
     onGesture: () => sound.unlock(),
     activate: () => overlay.activate(),
     togglePause,
     shield: useShield,
+    dash: useDash,
     flip: () => {                                          // Space or a double tap, while playing: a somersault with a chime
       const me = session?.game.players[0];
       if (!session || !me?.alive || !session.game.running || overlay.visible() || userPaused || performance.now() - lastFlip < FLIP.cooldownMs) return;
