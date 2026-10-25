@@ -39,6 +39,18 @@ export function createEffects(game: Game, particles: ParticleSink, camera: Shake
       const strength = victim.id === 1 ? 0.55 : clamp(1 - distanceFromMe(victim.x, victim.y) / EFFECTS.kickFarCells, 0, 1) * EFFECTS.kickOthers * 0.6;
       if (strength > 0) camera.kick(strength);
     },
+    /** Two heads meet face to face: a bright flash at the meeting point, a hard ring and sparks of both colours thrown apart, and a firm jolt (the harder the closer to you). */
+    clash(a: Player, b: Player) {
+      const x = (a.x + b.x) / 2, y = (a.y + b.y) / 2, ca = colorOf(a.id), cb = colorOf(b.id);
+      particles.burst(x, y, WHITE, 16, 8.5, 0.3);
+      particles.burst(x, y, lighten(ca, 0.3), 12, 6.5, 0.42);
+      particles.burst(x, y, lighten(cb, 0.3), 12, 6.5, 0.42);
+      particles.ring(x, y, WHITE, 3.4, 420);
+      particles.ring(x, y, lighten(ca, 0.45), 2.4, 560);
+      const mine = a.id === 1 || b.id === 1;
+      const strength = mine ? 0.95 : clamp(1 - distanceFromMe(x, y) / EFFECTS.kickFarCells, 0, 1) * EFFECTS.kickOthers;
+      if (strength > 0) camera.kick(strength);
+    },
     win() {
       const me = game.players[0];
       for (let id = 1; id <= game.players.length; id++) particles.burst(me.x, me.y, colorOf(id), 30, 9, 0.5);

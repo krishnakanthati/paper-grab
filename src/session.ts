@@ -46,7 +46,7 @@ export function createSession(o: SessionOptions): Session {
     onChainCut: (_from, by, ids) => { renderer.captureFx(by, []); audio.onCapture(by, ids); },      // the same ring and chime as a grab
     onShield: p => { renderer.shieldFx(p); audio.onShield(p); },
     onClear: (victim, cells) => renderer.clearFx(victim, cells),
-    onKill: (victim, killer, reason) => { renderer.killFx(victim, killer); audio.onKill(victim, killer, reason); },
+    onKill: (victim, killer, reason) => { renderer.killFx(victim, killer, reason); audio.onKill(victim, killer, reason); },
     onGameOver: () => { renderer.replayFx(); o.onDeath(); },
     onWin: () => { renderer.winFx(); audio.onWin(); o.onWin(); },
   }, undefined, { shape: o.shape });

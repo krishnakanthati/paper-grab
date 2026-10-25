@@ -31,7 +31,7 @@ export interface Renderer {
   /** A player switched their safe-zone shield on: a ring and a burst of sparkles. */
   shieldFx(p: Player): void;
   /** `killer` is who took them out (null for an accident): a plane slash plays when there is one. */
-  killFx(victim: Player, killer?: Player | null): void;
+  killFx(victim: Player, killer?: Player | null, reason?: string): void;
   /** The human was just taken out: after a beat, replay the hit in slow motion (only if somebody did it). */
   replayFx(): void;
   /** How long until the respawn should wait for the replay (0 = no replay). */
@@ -47,6 +47,7 @@ export interface Renderer {
   groundAt(sx: number, sy: number): { x: number; y: number } | null;
 }
 
+let lastClashAt = -1e9;
 const HIT_BUZZ = [70, 35, 160], STAR_BUZZ = [35, 20, 45];      // the killing hit thumps; each earlier star of the volley is a short tick
 
 export function createSceneRenderer(shell: Shell, overlayHost: HTMLElement, game: Game, characters: Characters3D): Renderer {
@@ -224,8 +225,12 @@ export function createSceneRenderer(shell: Shell, overlayHost: HTMLElement, game
       shell.render();
     },
     captureFx: (p, claimed, takenFrom) => { effects.capture(p, claimed); territory.reveal(claimed, takenFrom, p.x, p.y, lastPath[p.id]); },
-    killFx(victim, killer) {
+    killFx(victim, killer, reason) {
       const by = killer && killer !== victim ? killer : null;
+      if (by && reason?.startsWith('head-on')) {                      // face to face: one shared impact (a tie kills both, so only the first call shows it)
+        const now = performance.now();
+        if (now - lastClashAt > 120) { lastClashAt = now; effects.clash(victim, by); if (victim.id === 1 || by.id === 1) haptic(HIT_BUZZ); }
+      }
       const members = by ? characters.chainMembers(victim.id) : [];
       const chainIds = lastCaptives[victim.id] ?? [];
       const stars = by ? 1 + Math.max(members.length, victim.id === 1 ? chainIds.length : 0) : 1;      // one star for every member of the victim's chain, each hitting its own member once, then the one that hits the victim
