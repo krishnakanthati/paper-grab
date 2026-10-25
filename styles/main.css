@@ -250,7 +250,7 @@ kbd { display: inline-block; min-width: 18px; padding: 2px 7px; margin: 0 2px; b
   #btn, #btn2 { align-self: center; }
 }
 /* the game's own HUD must not show through the panel */
-#stage:has(#ov[style*="flex"]) :is(#progress, #kills, #bar, #miniwrap, #dpad) { visibility: hidden; }
+#stage:not(:has(#ov[style*="none"])) :is(#progress, #kills, #bar, #miniwrap, #dpad) { visibility: hidden; }
 
 /* ---------- button system: frosted, softly translucent glass with a little depth ----------
    Every button shares the same recipe: a translucent gradient, a bright rim light along the top edge, a darker inner
@@ -551,7 +551,7 @@ kbd[aria-label] { display: inline-flex; align-items: center; justify-content: ce
 }
 #trailPick button.locked { opacity: .9; }
 #trailPick button.locked::after { content: ''; position: absolute; inset: 7px 8px; border-radius: 3px; background: rgba(255, 255, 255, .9); }
-#stage:has(#ov[style*="flex"]) #toast { visibility: hidden; }
+#stage:not(:has(#ov[style*="none"])) #toast { visibility: hidden; }
 #charStage.locked { filter: none; }
 
 
