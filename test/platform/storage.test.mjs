@@ -13,11 +13,11 @@ test('saved settings round-trip through the Playables save slot', async () => {
   assert.equal(storage.get('character'), 'tiger'); assert.equal(storage.get('country'), 'MEX');
   assert.equal(storage.get('junk'), null, 'only text values are accepted');
   assert.equal(storage.get('nope'), null);
-  storage.set('character', 'rhino'); storage.set('character', 'rhino'); storage.set('tilt', 'off');
+  storage.set('character', 'rhino'); storage.set('character', 'rhino'); storage.set('country', 'MEX');
   assert.equal(storage.get('character'), 'rhino', 'reads are instant');
   await new Promise(r => setTimeout(r, STORAGE.saveDelayMs + 120));
   assert.equal(saved.saves, 1, 'quick changes are saved together, once');
-  assert.deepEqual(JSON.parse(saved.text), { character: 'rhino', country: 'MEX', tilt: 'off' });
+  assert.deepEqual(JSON.parse(saved.text), { character: 'rhino', country: 'MEX' });
 });
 
 test('bad or hostile saved data is ignored safely, and a failing save slot never breaks the game', async () => {

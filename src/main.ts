@@ -6,7 +6,6 @@ import { characterBoost, isTouchScreen, layoutChain } from './render3d/tuning.ts
 import { WORLD_SHAPE } from './data/worldMask.ts';
 import type { ArenaShape } from './data/shape.ts';
 import { bindInput } from './input/index.ts';
-import { bindTilt } from './input/tilt.ts';
 import { startLoop } from './loop.ts';
 import { enterFullscreen, fullscreenOnFirstGesture } from './platform/fullscreen.ts';
 import { FLIP, FLIP_KINDS, pickFlipKind, type FlipKind } from './render3d/pose.ts';
@@ -28,14 +27,13 @@ import { createPicker } from './ui/picker/index.ts';
 import { bindPullRefresh } from './ui/pullRefresh.ts';
 import { bindPauseButton } from './ui/pauseButton.ts';
 import { showFirstRoundHint } from './ui/hint.ts';
-import { bindTiltButton } from './ui/tiltButton.ts';
 
 
 async function main() {
   layoutChain(isTouchScreen(), characterBoost());      // bigger characters (phones) get a proportionally longer chain spacing, so captives are the same share of the leader's size everywhere
   fullscreenOnFirstGesture();
   setPlayerColor(Math.floor(Math.random() * COLORS.length));          // you are not always red: a different colour each visit
-  await initStorage();                                       // saved choices (character, country, tilt) are read before anything uses them
+  await initStorage();                                       // saved choices (character, country) are read before anything uses them
   const overlay = createOverlay();
   let shell: Shell;
   try {
@@ -78,7 +76,6 @@ async function main() {
   function startRound() {
     const shape = picker.find(picker.selected())?.shape ?? WORLD_SHAPE;
     sound.unlock(); sound.start(); enterFullscreen();
-    if (tilt.supported) { if (tilt.enabled()) tilt.recentre(); else if (tilt.wantedByDefault()) void tilt.enable(); }     // asked from the play tap, which iOS requires
     const s = ensureSession(shape);
     s.game.startGame();
     overlay.hide();
@@ -100,7 +97,7 @@ async function main() {
   const syncPause = () => { pauseUi.setPaused(userPaused); sound.setPaused(userPaused || ytPaused || hidden); };
   function togglePause() {
     if (userPaused) {
-      userPaused = false; overlay.hide(); tilt.recentre();      // resume with the phone held however it is now
+      userPaused = false; overlay.hide();
     } else if (session?.game.running && !overlay.visible()) {
       userPaused = true;
       overlay.show({
@@ -132,9 +129,6 @@ async function main() {
     },
   }, $('dpad'));
 
-  // tilt to steer (phones): the on-screen arrows still work and take over while they are in use
-  const tilt = bindTilt({ game: () => session!.game, busy: () => input.anyHeld() });
-  bindTiltButton($('tilt'), tilt);
 
   characterPicker = createCharacterPicker(() => session?.applyCharacters());      // every character is open: passing { costOf: characterCost, points } here is what brings the points lock back
 

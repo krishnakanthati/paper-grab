@@ -6,7 +6,7 @@ import { $ } from './dom.ts';
 export const HINT = {
   key: 'hinted', showMs: 4200,
   text: 'leave your colour, then loop back home to claim land',
-  touchText: 'leave your colour, loop back home to claim land. steer with the arrows or tilt your phone',
+  touchText: 'leave your colour, loop back home to claim land. steer with the arrows',
 };
 
 export const shouldShowHint = (get: (k: string) => string | null = k => storage.get(k)) => get(HINT.key) !== '1';

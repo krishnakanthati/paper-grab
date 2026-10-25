@@ -94,14 +94,13 @@ test('mobile: the start panel\'s action row never stacks or wraps, and key hints
   assert.match(rule('#charPick'), /flex-flow:\s*row nowrap/);
   assert.match(css, /@media \(hover: none\) and \(pointer: coarse\)\s*\{\s*#keys\s*\{\s*display:\s*none;?\s*\}/);
   assert.doesNotMatch(html, /<kbd>w<\/kbd>/, 'the hint lists only the arrow keys'); assert.doesNotMatch(html, /&#859[2-5];/, 'arrowheads, not arrow glyphs');
-  assert.match(html, /id="tilt"/);
 });
 
-test('the top-left row (eliminations, pause, tilt) is one row of one height, and the coin is gone from the progress bar', () => {
+test('the top-left row (skull count, shield, pause) is one row of one height, and the coin is gone from the progress bar', () => {
   assert.doesNotMatch(html, /class="mark"/);
   assert.doesNotMatch(html, />\$</, 'no dollar sign anywhere');
   const bar = html.slice(html.indexOf('<div id="bar">'), html.indexOf('<div id="miniwrap"'));
-  for (const id of ['kills', 'pause', 'tilt']) assert.ok(bar.includes(`id="${id}"`), `${id} is in the bar row`);
+  for (const id of ['kills', 'pause']) assert.ok(bar.includes(`id="${id}"`), `${id} is in the bar row`);
   assert.match(rule('#bar'), /flex-flow:\s*row nowrap/);
   assert.match(rule('#bar > *'), /height:\s*var\(--row-h\)/);
   assert.match(rule('#bar .round'), /width:\s*var\(--row-h\)/, 'round buttons are squares of the same height');

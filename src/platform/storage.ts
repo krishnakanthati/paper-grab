@@ -1,4 +1,4 @@
-// Saved settings (your character, country, tilt on/off, "seen the hint"). Inside YouTube the game's data belongs in the Playables
+// Saved settings (your character, country, "seen the hint"). Inside YouTube the game's data belongs in the Playables
 // save slot (ytgame.game.saveData / loadData), because the page may run in a sandbox where localStorage is blocked; anywhere else
 // it goes to localStorage. Both can fail, so every call is guarded and the game works without any of it.
 //

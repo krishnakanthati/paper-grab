@@ -54,7 +54,6 @@ Pushing to `main` runs `.github/workflows/pages.yml`: typecheck, tests, build, d
 | | |
 |---|---|
 | steer | the **arrow keys** (hold two for a diagonal), the mouse (follow the cursor), drag on touch, the on-screen arrows on touch devices |
-| tilt (phones) | tilt the phone the way you want to go; a small button in the top row turns it on or off. The pose you hold when a round starts is "level". On-screen arrows take over while you use them |
 | start / restart | Enter or Space, or the play button |
 | pause / resume | P or Esc, or the pause button |
 | sound | M, or the speaker button |
@@ -84,10 +83,10 @@ src/
     model.ts, pose.ts, rig.ts   the body, its animation maths, and posing every player (plus the captive chain)
     chain.ts          the path a leader has walked, so captives follow it exactly
   audio/            synth (WebAudio), sfx, spatial sound, events
-  ui/               hud, progress, minimap (crisp vector shapes), overlay, pause/sound/tilt buttons, pull-to-refresh
+  ui/               hud, progress, minimap (crisp vector shapes), overlay, pause/shield buttons, pull-to-refresh
     picker/           the 3D globe: scene logic, view, country list, texture budget per device
     characters/       the inline character picker, its small 3D stage, the jelly springs, storage
-  input/            keyboard, pointer, dpad, tilt (gyroscope)
+  input/            keyboard, pointer, dpad
   platform/         youtube.ts: Playables SDK (ready, score, audio setting, pause/resume)
 styles/main.css     all styling, mobile-first with safe-area and touch rules
 public/countries.json   169 countries as playable shapes + outlines (generated)

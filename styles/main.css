@@ -399,10 +399,8 @@ button[disabled], #btn[disabled] { cursor: default; }
 /* touch screens: no keyboard, so no key hints at all (a later rule used to switch them back on) */
 #keys[hidden] { display: none; }
 @media (hover: none) and (pointer: coarse) { #keys { display: none; } }
-/* the tilt button looks like its neighbours; it only appears on phones that have the sensor */
-#tilt[hidden] { display: none; }
 
-/* the top-left row (eliminations, pause, sound, tilt) is ONE height: every item is exactly --row-h tall, the same as the
+/* the top-left row (skull count, shield, pause) is ONE height: every item is exactly --row-h tall, the same as the
    progress bar and leaderboard. Round buttons are --row-h squares; on touch screens a larger invisible area keeps them easy to hit. */
 #bar > * { height: var(--row-h); min-height: var(--row-h); box-sizing: border-box; flex: none; }
 #bar .round { width: var(--row-h); min-width: var(--row-h); padding: 0; position: relative; }
@@ -667,7 +665,7 @@ kbd[aria-label] { display: inline-flex; align-items: center; justify-content: ce
 }
 
 
-/* the top-bar icons (shield, pause, tilt): just the icon, white with a dark outline and a soft shadow like the skull, no circle or border */
+/* the top-bar icons (shield, pause): just the icon, white with a dark outline and a soft shadow like the skull, no circle or border */
 #bar .round, #bar .round:hover, #bar .round:active {
   width: 26px; min-width: 26px; background: none; border: 0; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; color: #fff;
   filter: drop-shadow(1px 0 0 #1b2a6b) drop-shadow(-1px 0 0 #1b2a6b) drop-shadow(0 1px 0 #1b2a6b) drop-shadow(0 -1px 0 #1b2a6b) drop-shadow(0 2px 3px rgba(5, 25, 90, .5));
