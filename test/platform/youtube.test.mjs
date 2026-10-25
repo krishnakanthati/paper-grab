@@ -16,10 +16,19 @@ test('opened directly (not inside YouTube), the SDK saying "audio off" must NOT 
   assert.deepEqual(seen, [], 'the game muted itself because the SDK reported audio disabled outside YouTube');
 });
 
-test('inside YouTube (framed), the audio setting is followed from the start and on every change', async () => {
+test('framed by another site (itch.io, Poki...), the SDK saying "audio off" must NOT mute the game either', async () => {
+  const win = { ytgame: sdk(false), self: {}, top: {} };         // self !== top: a frame, but the SDK says it is not in YouTube
+  const { bindAudio, inYouTube } = await load(win);
+  const seen = [];
+  bindAudio(on => seen.push(on));
+  assert.equal(inYouTube(), false);
+  assert.deepEqual(seen, [], 'sound was muted just because the page sits in a frame');
+});
+
+test('inside YouTube, the audio setting is followed from the start and on every change', async () => {
   const listeners = [];
-  const g = sdk(false); g.system.onAudioEnabledChange = (cb) => listeners.push(cb);
-  const win = { ytgame: g, self: {}, top: {} };                 // self !== top: running in a frame
+  const g = sdk(false); g.IN_PLAYABLES_ENV = true; g.system.onAudioEnabledChange = (cb) => listeners.push(cb);
+  const win = { ytgame: g, self: {}, top: {} };
   const { bindAudio, inYouTube } = await load(win);
   const seen = [];
   bindAudio(on => seen.push(on));

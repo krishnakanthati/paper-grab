@@ -15,11 +15,12 @@ export function signalReady() {
 export function sendScore(value: number) { quiet(call(g => g.engagement.sendScore({ value }))); }
 
 /**
- * True only when the game is really running inside YouTube. The SDK script also loads when you open the game
- * directly, and there it can report audio as disabled, which would silently mute everything.
+ * True only when the SDK itself says the game is running inside YouTube. The SDK script also loads when you open the game
+ * directly, or when another site frames it (itch.io, Poki...), and there it reports audio as disabled, which would silently mute
+ * everything. Being in a frame is therefore NOT enough.
  */
 export function inYouTube(): boolean {
-  return window.ytgame?.IN_PLAYABLES_ENV === true || window.self !== window.top;
+  return window.ytgame?.IN_PLAYABLES_ENV === true;
 }
 
 /** YouTube's own audio setting: start from it, and follow every change (required by the SDK inside YouTube). */
