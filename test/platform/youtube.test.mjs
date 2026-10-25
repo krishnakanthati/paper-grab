@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 async function load(win) {
-  globalThis.window = win;
+  globalThis.window = win; win.location ??= { ancestorOrigins: [] };
+  globalThis.document = { referrer: win.referrer ?? '' };
   return import('../../src/platform/youtube.ts?' + Math.random());   // fresh module per scenario
 }
 const sdk = (enabled) => ({ IN_PLAYABLES_ENV: false, system: { isAudioEnabled: () => enabled, onAudioEnabledChange: () => {} } });
@@ -16,8 +17,9 @@ test('opened directly (not inside YouTube), the SDK saying "audio off" must NOT 
   assert.deepEqual(seen, [], 'the game muted itself because the SDK reported audio disabled outside YouTube');
 });
 
-test('framed by another site (itch.io, Poki...), the SDK saying "audio off" must NOT mute the game either', async () => {
-  const win = { ytgame: sdk(false), self: {}, top: {} };         // self !== top: a frame, but the SDK says it is not in YouTube
+test('framed by another site (itch.io, Poki...), the SDK claiming "in Playables, audio off" must NOT mute the game either', async () => {
+  const g = sdk(false); g.IN_PLAYABLES_ENV = true;                // inside any frame the SDK says this
+  const win = { ytgame: g, self: {}, top: {}, location: { ancestorOrigins: ['https://itch.io'] } };
   const { bindAudio, inYouTube } = await load(win);
   const seen = [];
   bindAudio(on => seen.push(on));
@@ -28,7 +30,7 @@ test('framed by another site (itch.io, Poki...), the SDK saying "audio off" must
 test('inside YouTube, the audio setting is followed from the start and on every change', async () => {
   const listeners = [];
   const g = sdk(false); g.IN_PLAYABLES_ENV = true; g.system.onAudioEnabledChange = (cb) => listeners.push(cb);
-  const win = { ytgame: g, self: {}, top: {} };
+  const win = { ytgame: g, self: {}, top: {}, location: { ancestorOrigins: ['https://www.youtube.com'] } };
   const { bindAudio, inYouTube } = await load(win);
   const seen = [];
   bindAudio(on => seen.push(on));
@@ -38,10 +40,11 @@ test('inside YouTube, the audio setting is followed from the start and on every 
   assert.deepEqual(seen, [false, true]);
 });
 
-test('the SDK flag IN_PLAYABLES_ENV also counts as being in YouTube', async () => {
-  const top = {}; const g = sdk(true); g.IN_PLAYABLES_ENV = true;
-  const { inYouTube } = await load({ ytgame: g, self: top, top });
-  assert.equal(inYouTube(), true);
+test('where the browser has no ancestor list, the referrer says whether YouTube framed us', async () => {
+  const g = sdk(true); g.IN_PLAYABLES_ENV = true;
+  assert.equal((await load({ ytgame: g, self: {}, top: {}, location: {}, referrer: 'https://www.youtube.com/playables' })).inYouTube(), true);
+  assert.equal((await load({ ytgame: g, self: {}, top: {}, location: {}, referrer: 'https://itch.io/' })).inYouTube(), false);
+  assert.equal((await load({ ytgame: g, self: {}, top: {}, location: {}, referrer: '' })).inYouTube(), false);
 });
 
 test('with no SDK at all, every call is a harmless no-op', async () => {
