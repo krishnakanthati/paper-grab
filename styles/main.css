@@ -650,7 +650,9 @@ kbd[aria-label] { display: inline-flex; align-items: center; justify-content: ce
 #rules b { display: inline-block; margin-right: .45em; vertical-align: -.1em; line-height: 0; }
 #rules b svg { display: block; width: .8em; height: .8em; filter: drop-shadow(0 0 6px rgba(12, 220, 250, .6)); }
 @media (max-height: 470px) { #rules { display: none; } }
-@media (max-width: 700px) { #rules { margin-top: 46px; } }           /* on a phone the rules sit under the title */
+@media (max-width: 700px) { #rules { margin-top: 46px; } }
+@media (max-width: 700px) and (max-height: 820px) { #rules { display: none; } #mid #picker { padding-top: 52px; box-sizing: border-box; } #worldmap { margin-top: 0; } }   /* a short portrait phone has no room for them: the globe and picker keep the space */
+@media (orientation: portrait) and (min-width: 701px) { #mid #picker { padding-top: 44px; } #worldmap { margin-top: 0; } }           /* on a phone the rules sit under the title */
 @media (min-width: 701px) {                                          /* elsewhere they take the empty top-right corner, opposite the logo, clear of the globe */
   #ov > #rules { position: absolute; top: calc(var(--safe-t) + var(--pad) + 4px); right: calc(var(--safe-r) + var(--pad)); margin: 0; align-items: flex-start; text-align: left; z-index: 2; }
   #mid #picker { padding-top: 40px; box-sizing: border-box; }                                  /* the rules no longer sit above it, so keep it clear of the title instead */
