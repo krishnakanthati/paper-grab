@@ -1,7 +1,7 @@
 // Composes the layers of one arena into the shell's single scene and draws a frame. This is the part the rest of the game talks to: it
 // follows the player with the camera controller, rebuilds what changed, interpolates everything between 30 Hz logic ticks, and turns game
 // events into effects. Each layer lives in its own module.
-import { CAMERA, REPLAY, nameOf } from '../config.ts';
+import { CAMERA, REPLAY } from '../config.ts';
 import type { Game, Player } from '../game/index.ts';
 import { DEATH, deathPose } from '../render3d/death.ts';
 import { createCameraController } from '../render/cameraController.ts';
@@ -115,7 +115,6 @@ export function createSceneRenderer(shell: Shell, overlayHost: HTMLElement, game
     };
     characters.holdChains(true); characters.setReplayChain(1, fatal.chain);      // both chains stand behind their owners through the replay, as they were, until the hit takes the victim's
     if (fatal.killer) characters.setReplayChain(fatal.killer, fatal.killerChain);
-    tag.textContent = fatal.killer ? 'replay · ' + nameOf(fatal.killer).toLowerCase() : 'replay';      // who did it, so the replay explains the end even when they are hard to spot
     nextPing = 0;
     tag.classList.add('on'); overlayHost.classList.add('replaying');      // the replay is just the scene and the replay mark: every other icon and label is hidden
   };
