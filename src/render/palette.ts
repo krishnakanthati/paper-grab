@@ -19,21 +19,45 @@ export function colorOf(id: number): number {
 export const cssColorOf = (id: number) => hex(colorOf(id));
 export const CSS_COLORS = COLORS.map(hex);
 
-export const SEA = 0xe8fbf4;        // arena floor: pale mint
-export const SEA_GLOW = 0xffffff;   // soft lighter centre of the floor
+/**
+ * Two looks for the same game. `evening` (the default) is calm: warm cream ground, a dusk-to-sunset sky round the map, soft violet shadows and
+ * warm light. `day` is the original bright mint and aqua. Chosen once at load: `?theme=day` / `?theme=evening` in the address, remembered in
+ * localStorage under `loopy-theme`.
+ */
+export type ThemeName = 'day' | 'evening';
+const LOOKS = {
+  day: {
+    sea: 0xe8fbf4, oceanTop: '#39b7ea', oceanBottom: '#8ae3f5', border: 0x5cbcf5, halo: 0x9bd9ff, arenaShadow: 0x0a4a7a, inkShadow: 0x0b2a3a,
+    lights: { ambient: 0xffffff, key: 0xffffff, fill: 0xbfe3ff },
+  },
+  evening: {
+    sea: 0xfff0e2, oceanTop: '#3b3d86', oceanBottom: '#f3a58b', border: 0xf29a78, halo: 0xffc7a6, arenaShadow: 0x3a2a6b, inkShadow: 0x2a1f4d,
+    lights: { ambient: 0xffe9d6, key: 0xffd6ad, fill: 0xb7a6ff },
+  },
+} as const;
+function chooseTheme(): ThemeName {
+  try {
+    const asked = new URLSearchParams(globalThis.location?.search ?? '').get('theme') ?? globalThis.localStorage?.getItem('loopy-theme');
+    if (asked === 'day' || asked === 'evening') { try { globalThis.localStorage?.setItem('loopy-theme', asked); } catch { /* private mode: just not remembered */ } return asked; }
+  } catch { /* no window (tests): the default */ }
+  return 'evening';
+}
+export const THEME = { name: chooseTheme() as ThemeName, ...LOOKS[chooseTheme()] };
+
+export const SEA = THEME.sea;       // arena floor
 
 // Shared fixed colours (so no render file carries its own copy of a hex literal)
 export const WHITE = 0xffffff;
-export const INK_SHADOW = 0x0b2a3a;        // soft drop shadows under heads and land
-export const ARENA_SHADOW = 0x0a4a7a;      // the deeper blue cast beneath the arena rim
+export const INK_SHADOW = THEME.inkShadow;        // soft drop shadows under heads and land
+export const ARENA_SHADOW = THEME.arenaShadow;      // the deeper blue cast beneath the arena rim
 export const PUPIL = 0x141824;
 export const GOLD = 0xffc933;              // crown fill
 export const GOLD_EDGE = 0xb9860b;         // crown outline
-export const OCEAN_TOP = '#39b7ea';        // the sea behind the arena, light aqua kept apart from the saturated blue and teal player colours
-export const OCEAN_BOTTOM = '#8ae3f5';
+export const OCEAN_TOP = THEME.oceanTop;         // the sea / sky behind the arena (day: light aqua kept apart from the saturated blue and teal player colours)
+export const OCEAN_BOTTOM = THEME.oceanBottom;
 export const css = (c: number) => '#' + c.toString(16).padStart(6, '0');
-export const BORDER = 0x5cbcf5;
-export const HALO = 0x9bd9ff;       // light band just outside the arena edge (opaque: no alpha stacking)
+export const BORDER = THEME.border;
+export const HALO = THEME.halo;       // light band just outside the arena edge (opaque: no alpha stacking)
 
 export const mix = (a: number, b: number, t: number) => {
   const r = ((a >> 16) & 255) * (1 - t) + ((b >> 16) & 255) * t;

@@ -682,3 +682,17 @@ kbd[aria-label] { display: inline-flex; align-items: center; justify-content: ce
 #shield[data-state="cool"] { opacity: .5; }
 @keyframes shield-ready { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.14); } }
 #bar #kills svg { width: 32px; height: 32px; }                         /* the skull's drawing has more empty margin than the shield's, so it needs a bigger box to look the same size */
+
+/* ---------- the evening theme: the start panel and text pick up the same dusk colours as the map (see render/palette.ts) ---------- */
+html.theme-evening, html.theme-evening body { background: radial-gradient(ellipse at 30% 40%, #3b3586 0%, #251b5c 55%, #150f3b 100%); }
+.theme-evening #ov {
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(255, 150, 120, .24) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 50% at 80% 80%, rgba(160, 110, 255, .28) 0%, transparent 50%),
+    radial-gradient(ellipse at center, rgba(78, 62, 160, .72) 0%, rgba(24, 14, 72, .96) 100%);
+}
+.theme-evening #ov::before { background: radial-gradient(circle, rgba(255, 170, 130, .22) 0%, rgba(200, 100, 140, .08) 50%, transparent 70%); }
+.theme-evening #ov::after { background: radial-gradient(circle, rgba(150, 120, 255, .22) 0%, rgba(90, 60, 200, .08) 50%, transparent 70%); }
+.theme-evening #ov h1 { background: linear-gradient(135deg, #fff 20%, #ffd9b8 55%, #ffb3cf 80%); -webkit-background-clip: text; background-clip: text; filter: drop-shadow(0 0 18px rgba(255, 160, 120, .5)) drop-shadow(0 2px 8px rgba(0, 0, 0, .4)); animation: none; }
+.theme-evening #rules li { color: #ffd9b8; text-shadow: 0 0 14px rgba(255, 150, 110, .5), 0 2px 8px rgba(0, 0, 0, .5); }
+.theme-evening #chosen, .theme-evening #charName { color: #ffd0b0; }

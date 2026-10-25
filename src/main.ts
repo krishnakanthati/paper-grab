@@ -11,7 +11,7 @@ import { enterFullscreen, fullscreenOnFirstGesture } from './platform/fullscreen
 import { FLIP, FLIP_KINDS, pickFlipKind, type FlipKind } from './render3d/pose.ts';
 import { initStorage } from './platform/storage.ts';
 import { bindAudio, bindPause, sendScore } from './platform/youtube.ts';
-import { COLORS, setPlayerColor } from './render/palette.ts';
+import { COLORS, THEME, setPlayerColor } from './render/palette.ts';
 import { pickResolution } from './render/quality.ts';
 import { createShell, type Shell } from './scene/shell.ts';
 import { createCharacters3D } from './render3d/index.ts';
@@ -30,6 +30,7 @@ import { showFirstRoundHint } from './ui/hint.ts';
 
 
 async function main() {
+  document.documentElement.classList.add('theme-' + THEME.name);          // lets the stylesheet colour the panels to match
   layoutChain(isTouchScreen(), characterBoost());      // bigger characters (phones) get a proportionally longer chain spacing, so captives are the same share of the leader's size everywhere
   fullscreenOnFirstGesture();
   setPlayerColor(Math.floor(Math.random() * COLORS.length));          // you are not always red: a different colour each visit

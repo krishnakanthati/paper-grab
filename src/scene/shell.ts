@@ -5,7 +5,7 @@ import {
   AmbientLight, CanvasTexture, Color, DirectionalLight, Group, LinearFilter, PerspectiveCamera, Raycaster, Scene, SRGBColorSpace, Vector2, Vector3, WebGLRenderer,
 } from 'three';
 import { CAMERA_3D, type CameraPose } from '../render/cameraController.ts';
-import { OCEAN_BOTTOM, OCEAN_TOP } from '../render/palette.ts';
+import { OCEAN_BOTTOM, OCEAN_TOP, THEME } from '../render/palette.ts';
 import { wantsMsaa } from '../render/quality.ts';
 import { CHARACTER as C } from '../render3d/tuning.ts';
 
@@ -99,9 +99,9 @@ export function createShell(parent: HTMLElement, w: number, h: number, pixelRati
 
   const scene = new Scene();
   scene.background = waterBackground();
-  scene.add(new AmbientLight(0xffffff, C.lights.ambient));
-  const key = new DirectionalLight(0xffffff, C.lights.key); key.position.set(-0.6, 1.2, 0.7); scene.add(key);     // from the upper left, in front
-  const fill = new DirectionalLight(0xbfe3ff, C.lights.fill); fill.position.set(0.8, 0.6, 0.5); scene.add(fill);
+  scene.add(new AmbientLight(THEME.lights.ambient, C.lights.ambient));
+  const key = new DirectionalLight(THEME.lights.key, C.lights.key); key.position.set(-0.6, 1.2, 0.7); scene.add(key);     // from the upper left, in front
+  const fill = new DirectionalLight(THEME.lights.fill, C.lights.fill); fill.position.set(0.8, 0.6, 0.5); scene.add(fill);
   const root = new Group(); scene.add(root);
 
   const fovDeg = CAMERA_3D.fovDeg;
